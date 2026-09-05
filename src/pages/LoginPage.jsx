@@ -1,0 +1,202 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User as UserIcon,
+  HeartPulse,
+  Smile,
+  Pill,
+  CalendarDays,
+} from "lucide-react";
+import Logo from "../components/Logo";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+
+export default function LoginPage() {
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const { login, register } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    setError("");
+
+    if (mode === "cadastro") {
+      if (!name.trim() || !email.trim() || password.length < 4) {
+        setError("Preencha nome, e-mail e uma senha com pelo menos 4 caracteres.");
+        return;
+      }
+      const result = register({ name, email, password });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      showToast(`Bem-vindo(a), ${name.split(" ")[0]}!`);
+      navigate("/");
+    } else {
+      const result = login({ email, password });
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      showToast(`Que bom te ver de novo, ${result.user.name.split(" ")[0]}!`);
+      navigate("/");
+    }
+  }
+
+  const inputClass =
+    "w-full rounded-lg border border-border bg-bg-secondary py-3 pl-10 pr-3 text-sm text-text-primary outline-none ring-accent/40 placeholder:text-text-muted focus:border-accent focus:ring-2";
+
+  return (
+    <div className="min-h-screen bg-bg-primary lg:flex">
+      <div className="hidden bg-accent lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-12">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
+            <HeartPulse size={19} strokeWidth={2} />
+          </div>
+          <span className="text-2xl font-bold tracking-tight text-white">VidaPlus</span>
+        </div>
+
+        <div className="max-w-md">
+          <h2 className="text-3xl font-bold leading-tight tracking-tight text-white">
+            Sua saúde, centralizada.
+          </h2>
+          <p className="mt-3 text-[15px] text-white/85">
+            Humor, hidratação, medicamentos, exames e agenda em um só lugar — simples de usar, no
+            seu ritmo.
+          </p>
+          <ul className="mt-8 space-y-4">
+            <FeatureItem icon={Smile} text="Acompanhe seu humor todos os dias" />
+            <FeatureItem icon={Pill} text="Nunca mais esqueça um medicamento" />
+            <FeatureItem icon={CalendarDays} text="Organize consultas e exames num só calendário" />
+          </ul>
+        </div>
+
+        <p className="text-xs text-white/60">Protótipo acadêmico — Projeto IHC 2026.2</p>
+      </div>
+
+      <div className="flex flex-1 items-center justify-center px-4 py-10 lg:px-12">
+        <div className="w-full max-w-sm">
+          <div className="mb-8 flex justify-center lg:hidden">
+            <Logo size="lg" withSlogan />
+          </div>
+
+          <div className="rounded-xl border border-transparent bg-bg-card p-6 shadow-sm dark:border-border dark:shadow-none">
+            <div className="mb-5 flex rounded-lg bg-bg-secondary p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("login");
+                  setError("");
+                }}
+                className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
+                  mode === "login"
+                    ? "bg-bg-card text-accent shadow-sm"
+                    : "text-text-secondary"
+                }`}
+              >
+                Entrar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("cadastro");
+                  setError("");
+                }}
+                className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
+                  mode === "cadastro"
+                    ? "bg-bg-card text-accent shadow-sm"
+                    : "text-text-secondary"
+                }`}
+              >
+                Cadastrar
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-3.5">
+              {mode === "cadastro" && (
+                <div className="relative">
+                  <UserIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nome completo"
+                    className={inputClass}
+                  />
+                </div>
+              )}
+              <div className="relative">
+                <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail"
+                  autoComplete="email"
+                  className={inputClass}
+                />
+              </div>
+              <div className="relative">
+                <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Senha"
+                  autoComplete={mode === "cadastro" ? "new-password" : "current-password"}
+                  className={`${inputClass} pr-10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {error && (
+                <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
+                  {error}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-accent py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+              >
+                {mode === "cadastro" ? "Criar conta" : "Entrar"}
+              </button>
+            </form>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-text-muted">
+            Protótipo acadêmico — os dados ficam salvos apenas neste navegador.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureItem({ icon: Icon, text }) {
+  return (
+    <li className="flex items-center gap-3 text-sm text-white/95">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+        <Icon size={16} />
+      </span>
+      {text}
+    </li>
+  );
+}
