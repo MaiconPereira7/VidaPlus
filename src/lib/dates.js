@@ -72,7 +72,7 @@ export function formatFriendlyDate(iso) {
       "novembro",
       "dezembro",
     ][m - 1]
-  }`;
+  } de ${y}`;
 }
 
 export function formatShortDate(iso) {

@@ -63,7 +63,7 @@ export default function PerfilPage() {
         <Card className="flex flex-col items-center gap-3 py-6 text-center animate-fade-in-up" style={{ animationDelay: "40ms" }}>
           <div
             className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-bold text-white"
-            style={{ background: "linear-gradient(135deg, var(--accent), var(--info))" }}
+            style={{ background: "linear-gradient(135deg, #059669, #2563eb)" }}
           >
             {initials}
           </div>
@@ -92,7 +92,7 @@ export default function PerfilPage() {
             onClick={() => (editing ? handleSave() : setEditing(true))}
             className="flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
           >
-            {editing ? <Check size={14} /> : <Pencil size={14} />}
+            {editing ? <Check size={14} strokeWidth={1.5} /> : <Pencil size={14} strokeWidth={1.5} />}
             {editing ? "Salvar alterações" : "Editar dados"}
           </button>
         </Card>
@@ -101,7 +101,7 @@ export default function PerfilPage() {
           <Card className="animate-fade-in-up" style={{ animationDelay: "70ms" }}>
             <button onClick={toggleTheme} className="flex w-full items-center justify-between">
               <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
-                {theme === "dark" ? <Moon size={18} /> : <Sun size={18} />}
+                {theme === "dark" ? <Moon size={18} strokeWidth={1.5} /> : <Sun size={18} strokeWidth={1.5} />}
                 Modo escuro
               </span>
               <span
@@ -126,14 +126,14 @@ export default function PerfilPage() {
             className="flex w-full items-center justify-center gap-2 rounded-xl border border-danger/20 bg-danger/5 py-3 text-sm font-semibold text-danger transition-colors hover:bg-danger/10 animate-fade-in-up"
             style={{ animationDelay: "100ms" }}
           >
-            <LogOut size={16} /> Sair da conta
+            <LogOut size={16} strokeWidth={1.5} /> Sair da conta
           </button>
         </div>
       </div>
 
       <div className="animate-fade-in-up" style={{ animationDelay: "130ms" }}>
         <h2 className="section-label mb-3 flex items-center gap-1.5">
-          <ClipboardList size={14} /> Avaliar o VidaPlus
+          <ClipboardList size={14} strokeWidth={1.5} /> Avaliar o VidaPlus
         </h2>
         <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
           <EvalButton
@@ -182,13 +182,13 @@ function EvalButton({ onClick, icon: Icon, title, subtitle }) {
       className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-bg-card p-3.5 text-left shadow-sm transition-shadow hover:shadow-md dark:border-border dark:shadow-none"
     >
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-secondary text-text-secondary">
-        <Icon size={19} strokeWidth={1.75} />
+        <Icon size={19} strokeWidth={1.5} />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-text-primary">{title}</p>
         <p className="truncate text-xs text-text-muted">{subtitle}</p>
       </div>
-      <ChevronRight size={18} className="shrink-0 text-text-muted" />
+      <ChevronRight size={18} strokeWidth={1.5} className="shrink-0 text-text-muted" />
     </button>
   );
 }

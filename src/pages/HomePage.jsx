@@ -1,9 +1,23 @@
 import { useEffect, useState } from "react";
-import { Plus, Minus, Droplets, Footprints, Pill, BellRing, Trash2, Check, CalendarOff } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Plus,
+  Minus,
+  Droplets,
+  Footprints,
+  Pill,
+  BellRing,
+  Trash2,
+  Check,
+  CheckCircle2,
+  Clock,
+  Smile,
+  CalendarOff,
+} from "lucide-react";
 import Card from "../components/Card";
 import ProgressBar from "../components/ProgressBar";
+import ProgressRing from "../components/ProgressRing";
 import EmptyState from "../components/EmptyState";
-import StatTile from "../components/StatTile";
 import Modal from "../components/Modal";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -24,6 +38,10 @@ import {
 } from "../lib/health";
 import { getTodayReminders, typeMeta } from "../lib/agenda";
 import { todayISO } from "../lib/dates";
+
+const BLUE = "#2563eb";
+const AMBER = "#d97706";
+const PURPLE = "#7c3aed";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
@@ -83,13 +101,19 @@ export default function HomePage() {
 
   const sortedMeds = [...meds].sort((a, b) => a.time.localeCompare(b.time));
   const medsTaken = sortedMeds.filter((m) => m.takenDates.includes(today)).length;
+  const allMedsTaken = sortedMeds.length > 0 && medsTaken === sortedMeds.length;
   const currentMood = mood ? MOOD_OPTIONS.find((m) => m.value === mood.mood) : null;
 
   const summaryStats = [
-    { icon: Pill, label: "Remédios hoje", value: sortedMeds.length ? `${medsTaken}/${sortedMeds.length}` : "—" },
-    { icon: Droplets, label: "Copos de água", value: water },
-    { icon: Footprints, label: "Passos", value: steps.toLocaleString("pt-BR") },
-    { icon: Check, label: "Humor hoje", value: currentMood ? currentMood.label : "—" },
+    {
+      icon: Pill,
+      label: "Remédios hoje",
+      value: sortedMeds.length ? `${medsTaken}/${sortedMeds.length}` : "—",
+      color: "var(--accent)",
+    },
+    { icon: Droplets, label: "Copos de água", value: water, color: BLUE },
+    { icon: Footprints, label: "Passos", value: steps.toLocaleString("pt-BR"), color: AMBER },
+    { icon: Smile, label: "Humor hoje", value: currentMood ? currentMood.label : "—", color: PURPLE },
   ];
 
   return (
@@ -101,9 +125,18 @@ export default function HomePage() {
           {summaryStats.map((s) => (
             <div
               key={s.label}
-              className="flex items-center gap-2 whitespace-nowrap rounded-lg border border-border px-3 py-2"
+              className="flex items-center gap-2.5 whitespace-nowrap rounded-xl border border-border px-3 py-2.5"
             >
-              <StatTile icon={s.icon} label={s.label} value={s.value} />
+              <span
+                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                style={{ backgroundColor: `${s.color}1a`, color: s.color }}
+              >
+                <s.icon size={14} strokeWidth={1.5} />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-text-primary">{s.value}</p>
+                <p className="text-[10px] text-text-muted">{s.label}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -113,86 +146,136 @@ export default function HomePage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Card className="animate-fade-in-up sm:col-span-2" style={{ animationDelay: "40ms" }}>
             <p className="meta-label mb-4">Check-in de humor</p>
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-1.5">
               {MOOD_OPTIONS.map((m) => {
                 const active = mood?.mood === m.value;
                 return (
                   <button
                     key={m.value}
                     onClick={() => handleMood(m.value)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl px-3 py-2.5 transition-all duration-150 ${
-                      active ? "" : "opacity-50 hover:opacity-100"
+                    className={`flex h-20 w-16 flex-col items-center justify-center gap-1.5 rounded-xl border bg-bg-primary transition-colors duration-150 dark:bg-[#1a1a1a] ${
+                      active ? "border-accent" : "border-border opacity-60 hover:opacity-100"
                     }`}
-                    style={active ? { backgroundColor: `${m.color}1a` } : undefined}
+                    style={active ? { boxShadow: "0 0 0 3px var(--accent-glow)" } : undefined}
                     aria-label={m.label}
                   >
-                    <span className="text-[28px] leading-none">{m.emoji}</span>
-                    <span
-                      className="text-[11px] font-medium"
-                      style={{ color: active ? m.color : "var(--text-secondary)" }}
+                    <motion.span
+                      className="text-2xl leading-none"
+                      animate={{ scale: active ? 1.15 : 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     >
-                      {m.label}
-                    </span>
+                      {m.emoji}
+                    </motion.span>
+                    <span className="text-[10px] font-medium text-text-secondary">{m.label}</span>
                   </button>
                 );
               })}
             </div>
-            {currentMood && (
-              <p className="mt-3 animate-fade-in text-center text-[13px] font-medium text-accent">
-                Você está se sentindo {currentMood.label.toLowerCase()} hoje ✓
-              </p>
-            )}
+            <AnimatePresence>
+              {currentMood && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-3 flex items-center justify-center gap-1.5 text-[13px] font-medium text-accent"
+                >
+                  <CheckCircle2 size={14} strokeWidth={1.5} />
+                  Você está se sentindo {currentMood.label.toLowerCase()} hoje
+                </motion.p>
+              )}
+            </AnimatePresence>
           </Card>
 
-          <Card className="animate-fade-in-up" style={{ animationDelay: "80ms" }}>
-            <div className="mb-3 flex items-center gap-1.5 text-text-secondary">
-              <Droplets size={16} strokeWidth={1.75} />
-              <span className="meta-label">Hidratação</span>
+          <Card
+            className="flex flex-col items-center animate-fade-in-up"
+            style={{ animationDelay: "80ms" }}
+          >
+            <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: BLUE }}>
+              <Droplets size={16} strokeWidth={1.5} />
+              <span className="meta-label text-current">Hidratação</span>
             </div>
-            <p className="stat-number">
-              {water}
-              <span className="ml-1 text-base font-medium text-text-muted">/ {WATER_GOAL}</span>
-            </p>
-            <p className="mb-3 text-xs text-text-secondary">copos de água</p>
-            <ProgressBar value={water} max={WATER_GOAL} />
+            <ProgressRing value={water} max={WATER_GOAL} color={BLUE}>
+              <span className="stat-number">{water}</span>
+              <span className="text-[10px] text-text-muted">/ {WATER_GOAL}</span>
+            </ProgressRing>
+            <p className="mt-2 text-xs text-text-secondary">copos de água</p>
+            <ProgressBar value={water} max={WATER_GOAL} color={BLUE} height="h-1" trackClassName="mt-3" />
             <div className="mt-4 flex items-center justify-center gap-3">
               <button
                 onClick={() => adjustWater(-1)}
                 disabled={water <= 0}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-border disabled:hover:bg-transparent disabled:hover:text-text-secondary"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+                style={{ "--hover-color": BLUE }}
+                onMouseEnter={(e) => {
+                  if (water > 0) {
+                    e.currentTarget.style.backgroundColor = BLUE;
+                    e.currentTarget.style.borderColor = BLUE;
+                    e.currentTarget.style.color = "#fff";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "";
+                  e.currentTarget.style.borderColor = "";
+                  e.currentTarget.style.color = "";
+                }}
                 aria-label="Remover copo"
               >
-                <Minus size={16} />
+                <Minus size={16} strokeWidth={1.5} />
               </button>
               <button
                 onClick={() => adjustWater(1)}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border text-text-secondary transition-colors"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = BLUE;
+                  e.currentTarget.style.borderColor = BLUE;
+                  e.currentTarget.style.color = "#fff";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "";
+                  e.currentTarget.style.borderColor = "";
+                  e.currentTarget.style.color = "";
+                }}
                 aria-label="Adicionar copo"
               >
-                <Plus size={16} />
+                <Plus size={16} strokeWidth={1.5} />
               </button>
             </div>
           </Card>
 
-          <Card className="animate-fade-in-up" style={{ animationDelay: "110ms" }}>
-            <div className="mb-3 flex items-center gap-1.5 text-text-secondary">
-              <Footprints size={16} strokeWidth={1.75} />
-              <span className="meta-label">Passos</span>
+          <Card
+            className="flex flex-col items-center animate-fade-in-up"
+            style={{ animationDelay: "110ms" }}
+          >
+            <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: AMBER }}>
+              <Footprints size={16} strokeWidth={1.5} />
+              <span className="meta-label text-current">Passos</span>
             </div>
-            <p className="stat-number">
-              {steps.toLocaleString("pt-BR")}
-              <span className="ml-1 text-base font-medium text-text-muted">
-                / {STEPS_GOAL.toLocaleString("pt-BR")}
+            <ProgressRing value={steps} max={STEPS_GOAL} color={AMBER}>
+              <span className="text-2xl font-bold tracking-tight text-text-primary">
+                {steps >= 1000 ? `${(steps / 1000).toFixed(1)}k` : steps}
               </span>
-            </p>
-            <p className="mb-3 text-xs text-text-secondary">meta diária</p>
-            <ProgressBar value={steps} max={STEPS_GOAL} />
+              <span className="text-[10px] text-text-muted">
+                / {(STEPS_GOAL / 1000).toFixed(0)}k
+              </span>
+            </ProgressRing>
+            <p className="mt-2 text-xs text-text-secondary">meta diária</p>
+            <ProgressBar value={steps} max={STEPS_GOAL} color={AMBER} height="h-1" trackClassName="mt-3" />
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               {[100, 500, 1000].map((inc) => (
                 <button
                   key={inc}
                   onClick={() => adjustSteps(inc)}
-                  className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors hover:border-accent hover:bg-accent hover:text-white"
+                  className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = AMBER;
+                    e.currentTarget.style.borderColor = AMBER;
+                    e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "";
+                    e.currentTarget.style.borderColor = "";
+                    e.currentTarget.style.color = "";
+                  }}
                 >
                   +{inc}
                 </button>
@@ -203,7 +286,7 @@ export default function HomePage() {
           <Card className="animate-fade-in-up sm:col-span-2" style={{ animationDelay: "140ms" }}>
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-text-secondary">
-                <Pill size={16} strokeWidth={1.75} />
+                <Pill size={16} strokeWidth={1.5} />
                 <span className="meta-label">Medicamentos de hoje</span>
               </div>
               <button
@@ -211,7 +294,7 @@ export default function HomePage() {
                 className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover"
                 aria-label="Adicionar medicamento"
               >
-                <Plus size={15} />
+                <Plus size={15} strokeWidth={1.5} />
               </button>
             </div>
             {sortedMeds.length === 0 ? (
@@ -223,52 +306,74 @@ export default function HomePage() {
                 onAction={() => setMedModalOpen(true)}
               />
             ) : (
-              <ul className="divide-y divide-border">
-                {sortedMeds.map((med) => {
-                  const taken = med.takenDates.includes(today);
-                  return (
-                    <li key={med.id} className="group flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                      <button
-                        onClick={() => handleToggleMed(med.id)}
-                        className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
-                          taken ? "border-accent bg-accent" : "border-border"
-                        }`}
-                        aria-label={taken ? "Marcar como não tomado" : "Marcar como tomado"}
-                      >
-                        {taken && <Check size={12} strokeWidth={3} className="text-white" />}
-                      </button>
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className={`truncate text-sm font-medium ${
-                            taken ? "text-text-muted line-through" : "text-text-primary"
+              <>
+                <ul className="divide-y divide-border">
+                  {sortedMeds.map((med) => {
+                    const taken = med.takenDates.includes(today);
+                    return (
+                      <li key={med.id} className="group flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: taken ? "var(--accent)" : AMBER }}
+                        />
+                        <button
+                          onClick={() => handleToggleMed(med.id)}
+                          className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+                            taken ? "border-accent bg-accent" : "border-border"
                           }`}
+                          aria-label={taken ? "Marcar como não tomado" : "Marcar como tomado"}
                         >
-                          {med.name}
-                          {med.dosage && (
-                            <span className="font-normal text-text-muted"> · {med.dosage}</span>
-                          )}
-                        </p>
+                          {taken && <Check size={12} strokeWidth={3} className="text-white" />}
+                        </button>
+                        <div className="min-w-0 flex-1">
+                          <p
+                            className={`truncate text-sm font-medium ${
+                              taken ? "text-text-muted line-through" : "text-text-primary"
+                            }`}
+                          >
+                            {med.name}
+                            {med.dosage && (
+                              <span className="font-normal text-text-muted"> · {med.dosage}</span>
+                            )}
+                          </p>
+                        </div>
+                        <span className="flex shrink-0 items-center gap-1 rounded-full bg-bg-secondary px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+                          <Clock size={12} strokeWidth={1.5} />
+                          {med.time}
+                        </span>
+                        <button
+                          onClick={() => handleDeleteMed(med.id)}
+                          className="shrink-0 text-text-muted transition-opacity hover:text-danger md:opacity-0 md:group-hover:opacity-100"
+                          aria-label="Excluir"
+                        >
+                          <Trash2 size={15} strokeWidth={1.5} />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <AnimatePresence>
+                  {allMedsTaken && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-3 flex items-center gap-2 rounded-lg bg-accent-light px-3 py-2 text-xs font-medium text-accent-hover dark:text-accent">
+                        <CheckCircle2 size={14} strokeWidth={1.5} />
+                        Todos os medicamentos do dia foram tomados!
                       </div>
-                      <span className="shrink-0 rounded-full bg-bg-secondary px-2.5 py-1 text-[11px] font-medium text-text-secondary">
-                        {med.time}
-                      </span>
-                      <button
-                        onClick={() => handleDeleteMed(med.id)}
-                        className="shrink-0 text-text-muted transition-opacity hover:text-danger md:opacity-0 md:group-hover:opacity-100"
-                        aria-label="Excluir"
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
             )}
           </Card>
 
           <Card className="animate-fade-in-up sm:col-span-2" style={{ animationDelay: "170ms" }}>
             <div className="mb-3 flex items-center gap-1.5 text-text-secondary">
-              <BellRing size={16} strokeWidth={1.75} />
+              <BellRing size={16} strokeWidth={1.5} />
               <span className="meta-label">Lembretes de hoje</span>
             </div>
             {reminders.length === 0 ? (
@@ -297,10 +402,24 @@ export default function HomePage() {
 
         <div className="hidden lg:block">
           <Card className="sticky top-24 animate-fade-in-up" style={{ animationDelay: "90ms" }}>
-            <p className="section-label mb-4">Resumo do dia</p>
-            <div className="grid grid-cols-2 gap-4">
+            <p className="section-label mb-3">Resumo do dia</p>
+            <div className="space-y-2">
               {summaryStats.map((s) => (
-                <StatTile key={s.label} icon={s.icon} label={s.label} value={s.value} />
+                <div
+                  key={s.label}
+                  className="flex items-center gap-3 rounded-xl bg-bg-primary p-3 dark:bg-[#1a1a1a]"
+                >
+                  <span
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: `${s.color}1a`, color: s.color }}
+                  >
+                    <s.icon size={16} strokeWidth={1.5} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-lg font-bold leading-tight text-text-primary">{s.value}</p>
+                    <p className="truncate text-[11px] text-text-muted">{s.label}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </Card>

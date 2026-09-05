@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 
-export default function SurveyShell({ title, progress, step, total, children, onBack, maxWidth = "max-w-[600px]" }) {
+export default function SurveyShell({ title, progress, step, total, children, onBack, maxWidth = "max-w-[520px]" }) {
   const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -13,7 +13,7 @@ export default function SurveyShell({ title, progress, step, total, children, on
               className="rounded-lg p-1.5 text-text-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
               aria-label="Voltar"
             >
-              <ArrowLeft size={20} />
+              <ArrowLeft size={20} strokeWidth={1.5} />
             </button>
             <h1 className="text-base font-semibold text-text-primary">{title}</h1>
           </div>
@@ -26,7 +26,7 @@ export default function SurveyShell({ title, progress, step, total, children, on
         {typeof progress === "number" && (
           <div className="h-[3px] w-full bg-border">
             <div
-              className="h-full bg-accent transition-all duration-300"
+              className="h-full bg-accent transition-[width] duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

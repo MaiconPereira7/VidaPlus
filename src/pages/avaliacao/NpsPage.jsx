@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import SurveyShell from "../../components/SurveyShell";
 import RespondentGate from "../../components/RespondentGate";
 import AnimatedCheck from "../../components/AnimatedCheck";
@@ -12,11 +13,11 @@ const CATEGORY_STYLES = {
   Detrator: "bg-danger/10 text-danger",
 };
 
-function scoreColor(n) {
-  if (n <= 3) return "var(--danger)";
-  if (n <= 6) return "var(--amber)";
-  if (n <= 8) return "#eab308";
-  return "var(--accent)";
+function scoreStyle(n) {
+  if (n <= 3) return { bg: "var(--danger)", text: "#fff" };
+  if (n <= 6) return { bg: "var(--amber)", text: "#fff" };
+  if (n <= 8) return { bg: "#facc15", text: "#000" };
+  return { bg: "var(--accent)", text: "#fff" };
 }
 
 export default function NpsPage() {
@@ -50,7 +51,13 @@ export default function NpsPage() {
     return (
       <SurveyShell title="NPS" onBack={() => navigate("/perfil")}>
         <div className="flex flex-col items-center gap-4 py-8 text-center">
-          <AnimatedCheck />
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 15 }}
+          >
+            <AnimatedCheck size={80} />
+          </motion.div>
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">
             Obrigado, {respondent}!
           </h2>
@@ -82,19 +89,22 @@ export default function NpsPage() {
             Em uma escala de 0 a 10, qual a probabilidade de você recomendar o VidaPlus Web a um
             amigo ou familiar?
           </h2>
-          <div className="grid grid-cols-6 gap-2 sm:grid-cols-11">
+          <div className="flex flex-wrap justify-center gap-2">
             {Array.from({ length: 11 }, (_, i) => i).map((n) => {
-              const color = scoreColor(n);
+              const { bg, text } = scoreStyle(n);
               const isSelected = score === n;
               return (
                 <button
                   key={n}
                   onClick={() => setScore(n)}
-                  className="flex h-12 w-full items-center justify-center rounded-[10px] border text-base font-semibold transition-colors"
+                  className={`flex h-11 w-11 items-center justify-center rounded-xl border text-base font-semibold transition-all duration-150 ${
+                    isSelected ? "scale-110" : ""
+                  }`}
                   style={{
-                    borderColor: isSelected ? color : "var(--border-color)",
-                    backgroundColor: isSelected ? color : "transparent",
-                    color: isSelected ? "#fff" : "var(--text-secondary)",
+                    borderColor: isSelected ? bg : "var(--border-color)",
+                    backgroundColor: isSelected ? bg : "transparent",
+                    color: isSelected ? text : "var(--text-secondary)",
+                    boxShadow: isSelected ? `0 4px 14px ${bg}55` : undefined,
                   }}
                 >
                   {n}

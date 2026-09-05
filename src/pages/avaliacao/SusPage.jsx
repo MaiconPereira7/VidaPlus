@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import SurveyShell from "../../components/SurveyShell";
 import RespondentGate from "../../components/RespondentGate";
 import LikertScale from "../../components/LikertScale";
 import AnimatedCheck from "../../components/AnimatedCheck";
+import SusGauge from "../../components/SusGauge";
 import { useCountUp } from "../../hooks/useCountUp";
 import { SUS_STATEMENTS, addSusResponse, susGrade } from "../../lib/surveys";
 import { useToast } from "../../context/ToastContext";
@@ -60,7 +62,7 @@ export default function SusPage() {
 
   return (
     <SurveyShell title="SUS" progress={((step + 1) / SUS_STATEMENTS.length) * 100} step={step + 1} total={SUS_STATEMENTS.length}>
-      <div key={step} className="animate-slide-in">
+      <div key={step} className="animate-slide-in pb-20 md:pb-0">
         <h2 className="mb-6 text-xl font-semibold leading-snug tracking-tight text-text-primary">
           {statement.text}
         </h2>
@@ -73,20 +75,20 @@ export default function SusPage() {
         />
       </div>
 
-      <div className="mt-10 flex items-center justify-between gap-3">
+      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-bg-primary/90 px-4 py-3 backdrop-blur-md md:static md:mt-10 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
         <button
           onClick={() => setStep((s) => Math.max(0, s - 1))}
           disabled={step === 0}
           className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-text-secondary disabled:opacity-30"
         >
-          <ArrowLeft size={16} /> Voltar
+          <ArrowLeft size={16} strokeWidth={1.5} /> Voltar
         </button>
         <button
           onClick={handleNext}
           disabled={!value}
           className="flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {step === SUS_STATEMENTS.length - 1 ? "Enviar" : "Próxima"} <ArrowRight size={16} />
+          {step === SUS_STATEMENTS.length - 1 ? "Enviar" : "Próxima"} <ArrowRight size={16} strokeWidth={1.5} />
         </button>
       </div>
     </SurveyShell>
@@ -99,10 +101,19 @@ function SusResult({ respondent, score, onDone }) {
 
   return (
     <div className="flex flex-col items-center gap-4 py-8 text-center">
-      <AnimatedCheck />
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      >
+        <AnimatedCheck size={80} />
+      </motion.div>
       <h2 className="text-2xl font-bold tracking-tight text-text-primary">Obrigado, {respondent}!</h2>
       <p className="text-sm text-text-secondary">Seu score de usabilidade (SUS):</p>
-      <div className="flex items-center gap-4">
+
+      <SusGauge score={animated} />
+
+      <div className="-mt-2 flex items-center gap-4">
         <span className="text-4xl font-bold tracking-tight text-text-primary">{animated.toFixed(1)}</span>
         <span
           className="flex h-14 w-14 items-center justify-center rounded-xl text-xl font-bold text-white"
@@ -114,12 +125,6 @@ function SusResult({ respondent, score, onDone }) {
       <p className="text-sm font-semibold" style={{ color: grade.color }}>
         {grade.label}
       </p>
-      <div className="mx-auto mt-2 h-2 w-full max-w-xs overflow-hidden rounded-full bg-border">
-        <div
-          className="h-full rounded-full transition-all duration-1000 ease-out"
-          style={{ width: `${Math.min(100, score)}%`, backgroundColor: grade.color }}
-        />
-      </div>
       <button
         onClick={onDone}
         className="mt-2 rounded-lg bg-accent px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"

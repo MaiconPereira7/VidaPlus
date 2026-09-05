@@ -6,10 +6,10 @@ function key(email) {
 }
 
 export const APPOINTMENT_TYPES = [
-  { value: "Consulta", color: "#3b82f6" },
-  { value: "Exame", color: "#8b5cf6" },
-  { value: "Lembrete", color: "#f59e0b" },
-  { value: "Outro", color: "#6b7280" },
+  { value: "Consulta", color: "#2563eb" },
+  { value: "Exame", color: "#7c3aed" },
+  { value: "Lembrete", color: "#d97706" },
+  { value: "Outro", color: "#737373" },
 ];
 
 export function typeMeta(type) {

@@ -59,9 +59,9 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
           className="rounded-lg p-1.5 text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
           aria-label="Mês anterior"
         >
-          <ChevronLeft size={18} />
+          <ChevronLeft size={18} strokeWidth={1.5} />
         </button>
-        <span className="card-title">
+        <span className="text-base font-semibold text-text-primary">
           {MONTHS[cursor.month]} {cursor.year}
         </span>
         <button
@@ -69,12 +69,12 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
           className="rounded-lg p-1.5 text-text-muted hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
           aria-label="Próximo mês"
         >
-          <ChevronRight size={18} />
+          <ChevronRight size={18} strokeWidth={1.5} />
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center md:gap-1.5">
         {WEEKDAYS.map((w, i) => (
-          <span key={i} className="pb-1 text-[11px] font-semibold text-text-muted">
+          <span key={i} className="pb-1 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
             {w}
           </span>
         ))}
@@ -88,18 +88,23 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
             <button
               key={iso}
               onClick={() => onSelectDate(iso)}
-              className={`relative flex h-9 flex-col items-center justify-center gap-0.5 rounded-lg text-sm font-medium transition-colors md:h-12 ${
+              className={`relative flex h-9 items-center justify-center rounded-xl text-sm font-medium transition-colors md:h-12 ${
                 isSelected
                   ? "bg-accent text-white"
                   : isToday
-                  ? "border border-accent text-accent"
+                  ? "text-accent ring-2 ring-accent/30"
                   : "text-text-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
               }`}
+              style={
+                colors.length > 0 && !isSelected
+                  ? { boxShadow: `inset 0 -2px 0 0 ${colors[0]}` }
+                  : undefined
+              }
             >
               {day}
-              {colors.length > 0 && (
-                <span className="flex items-center gap-0.5">
-                  {colors.slice(0, 3).map((c, idx) => (
+              {colors.length > 1 && (
+                <span className="absolute bottom-1 flex items-center gap-0.5">
+                  {colors.slice(1, 3).map((c, idx) => (
                     <span
                       key={idx}
                       className="h-1 w-1 rounded-full"

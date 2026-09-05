@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Clock, CalendarDays, FileText, ArrowUpRight } from "lucide-react";
 import Card from "../components/Card";
 import Modal from "../components/Modal";
@@ -146,7 +147,7 @@ export default function AgendaPage() {
                 const meta = typeMeta(appt.type);
                 return (
                   <li key={appt.id} className="animate-fade-in-up" style={{ animationDelay: `${100 + idx * 30}ms` }}>
-                    <Card>
+                    <Card className="group border-l-[3px]" style={{ borderLeftColor: meta.color }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -157,7 +158,7 @@ export default function AgendaPage() {
                               {appt.type}
                             </span>
                             <span className="flex items-center gap-1 text-xs text-text-muted">
-                              <Clock size={12} /> {appt.time}
+                              <Clock size={12} strokeWidth={1.5} /> {appt.time}
                             </span>
                           </div>
                           <p className="mt-1.5 truncate text-sm font-medium text-text-primary">
@@ -167,20 +168,20 @@ export default function AgendaPage() {
                             <p className="mt-0.5 text-xs text-text-secondary">{appt.notes}</p>
                           )}
                         </div>
-                        <div className="flex shrink-0 gap-1">
+                        <div className="flex shrink-0 gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                           <button
                             onClick={() => openEditModal(appt)}
                             className="rounded-lg p-1.5 text-text-muted hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.06]"
                             aria-label="Editar"
                           >
-                            <Pencil size={15} />
+                            <Pencil size={15} strokeWidth={1.5} />
                           </button>
                           <button
                             onClick={() => handleDelete(appt.id)}
                             className="rounded-lg p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger"
                             aria-label="Excluir"
                           >
-                            <Trash2 size={15} />
+                            <Trash2 size={15} strokeWidth={1.5} />
                           </button>
                         </div>
                       </div>
@@ -194,7 +195,7 @@ export default function AgendaPage() {
           {examsForDate.length > 0 && (
             <div className="mt-4">
               <p className="meta-label mb-2.5 flex items-center gap-1.5">
-                <FileText size={13} /> Exames do prontuário
+                <FileText size={13} strokeWidth={1.5} /> Exames do prontuário
               </p>
               <ul className="space-y-2.5">
                 {examsForDate.map((exam, idx) => (
@@ -203,7 +204,11 @@ export default function AgendaPage() {
                     className="animate-fade-in-up"
                     style={{ animationDelay: `${100 + (appointments.length + idx) * 30}ms` }}
                   >
-                    <Card onClick={() => navigate("/saude")} className="cursor-pointer">
+                    <Card
+                      onClick={() => navigate("/saude")}
+                      className="cursor-pointer border-l-[3px]"
+                      style={{ borderLeftColor: examMeta.color }}
+                    >
                       <div className="flex items-center justify-between gap-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
@@ -228,7 +233,7 @@ export default function AgendaPage() {
                             </p>
                           )}
                         </div>
-                        <ArrowUpRight size={16} className="shrink-0 text-text-muted" />
+                        <ArrowUpRight size={16} strokeWidth={1.5} className="shrink-0 text-text-muted" />
                       </div>
                     </Card>
                   </li>
@@ -239,13 +244,17 @@ export default function AgendaPage() {
         </div>
       </div>
 
-      <button
+      <motion.button
         onClick={openAddModal}
         aria-label="Novo compromisso"
-        className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-lg transition-colors hover:bg-accent-hover md:bottom-8 md:right-8"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.96 }}
+        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+        className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover md:bottom-8 md:right-8"
+        style={{ boxShadow: "0 4px 14px rgba(5,150,105,0.4)" }}
       >
-        <Plus size={26} />
-      </button>
+        <Plus size={26} strokeWidth={1.5} />
+      </motion.button>
 
       <Modal
         open={modalOpen}

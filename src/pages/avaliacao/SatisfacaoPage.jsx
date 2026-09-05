@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import SurveyShell from "../../components/SurveyShell";
 import RespondentGate from "../../components/RespondentGate";
@@ -139,7 +140,7 @@ export default function SatisfacaoPage() {
       step={step + 1}
       total={QUESTIONS.length}
     >
-      <div key={step} className="animate-slide-in">
+      <div key={step} className="animate-slide-in pb-20 md:pb-0">
         <h2 className="mb-6 text-xl font-semibold leading-snug tracking-tight text-text-primary">
           {question.text}
         </h2>
@@ -178,20 +179,20 @@ export default function SatisfacaoPage() {
         )}
       </div>
 
-      <div className="mt-10 flex items-center justify-between gap-3">
+      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-border bg-bg-primary/90 px-4 py-3 backdrop-blur-md md:static md:mt-10 md:border-0 md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-none">
         <button
           onClick={handleBack}
           disabled={step === 0}
           className="flex items-center gap-1.5 rounded-lg px-4 py-2.5 text-sm font-medium text-text-secondary disabled:opacity-30"
         >
-          <ArrowLeft size={16} /> Voltar
+          <ArrowLeft size={16} strokeWidth={1.5} /> Voltar
         </button>
         <button
           onClick={handleNext}
           disabled={!canAdvance}
           className="flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {step === QUESTIONS.length - 1 ? "Enviar" : "Próxima"} <ArrowRight size={16} />
+          {step === QUESTIONS.length - 1 ? "Enviar" : "Próxima"} <ArrowRight size={16} strokeWidth={1.5} />
         </button>
       </div>
     </SurveyShell>
@@ -201,7 +202,13 @@ export default function SatisfacaoPage() {
 function ThankYou({ onDone }) {
   return (
     <div className="flex flex-col items-center gap-4 py-10 text-center">
-      <AnimatedCheck />
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+      >
+        <AnimatedCheck size={80} />
+      </motion.div>
       <h2 className="text-2xl font-bold tracking-tight text-text-primary">
         Obrigado pela sua avaliação!
       </h2>

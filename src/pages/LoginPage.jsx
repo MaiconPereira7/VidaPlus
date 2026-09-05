@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Eye,
   EyeOff,
@@ -58,15 +59,29 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-bg-primary lg:flex">
-      <div className="hidden bg-accent lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-12">
-        <div className="flex items-center gap-2.5">
+      <div
+        className="relative hidden overflow-hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-12"
+        style={{ background: "linear-gradient(135deg, #059669 0%, #047857 50%, #065f46 100%)" }}
+      >
+        <svg
+          className="pointer-events-none absolute inset-0 h-full w-full"
+          style={{ opacity: 0.06 }}
+          aria-hidden="true"
+        >
+          <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1.5" fill="white" />
+          </pattern>
+          <rect width="100%" height="100%" fill="url(#dots)" />
+        </svg>
+
+        <div className="relative flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
-            <HeartPulse size={19} strokeWidth={2} />
+            <HeartPulse size={19} strokeWidth={1.5} />
           </div>
           <span className="text-2xl font-bold tracking-tight text-white">VidaPlus</span>
         </div>
 
-        <div className="max-w-md">
+        <div className="relative max-w-md">
           <h2 className="text-3xl font-bold leading-tight tracking-tight text-white">
             Sua saúde, centralizada.
           </h2>
@@ -81,7 +96,7 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="text-xs text-white/60">Protótipo acadêmico — Projeto IHC 2026.2</p>
+        <p className="relative text-xs text-white/60">Protótipo acadêmico — Projeto IHC 2026.2</p>
       </div>
 
       <div className="flex flex-1 items-center justify-center px-4 py-10 lg:px-12">
@@ -90,36 +105,30 @@ export default function LoginPage() {
             <Logo size="lg" withSlogan />
           </div>
 
-          <div className="rounded-xl border border-transparent bg-bg-card p-6 shadow-sm dark:border-border dark:shadow-none">
-            <div className="mb-5 flex rounded-lg bg-bg-secondary p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("login");
-                  setError("");
-                }}
-                className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
-                  mode === "login"
-                    ? "bg-bg-card text-accent shadow-sm"
-                    : "text-text-secondary"
-                }`}
-              >
-                Entrar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode("cadastro");
-                  setError("");
-                }}
-                className={`flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
-                  mode === "cadastro"
-                    ? "bg-bg-card text-accent shadow-sm"
-                    : "text-text-secondary"
-                }`}
-              >
-                Cadastrar
-              </button>
+          <div className="rounded-xl border border-transparent bg-bg-card p-6 shadow-lg dark:border-border dark:shadow-none">
+            <div className="relative mb-5 flex rounded-lg bg-bg-secondary p-1">
+              {["login", "cadastro"].map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => {
+                    setMode(m);
+                    setError("");
+                  }}
+                  className={`relative z-10 flex-1 rounded-md py-2 text-sm font-semibold transition-colors ${
+                    mode === m ? "text-accent" : "text-text-secondary"
+                  }`}
+                >
+                  {mode === m && (
+                    <motion.span
+                      layoutId="login-tab-indicator"
+                      className="absolute inset-0 -z-10 rounded-md bg-bg-card shadow-sm"
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    />
+                  )}
+                  {m === "login" ? "Entrar" : "Cadastrar"}
+                </button>
+              ))}
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
@@ -174,7 +183,7 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="w-full rounded-lg bg-accent py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+                className="h-12 w-full rounded-lg bg-accent text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover"
               >
                 {mode === "cadastro" ? "Criar conta" : "Entrar"}
               </button>
@@ -184,6 +193,9 @@ export default function LoginPage() {
           <p className="mt-6 text-center text-xs text-text-muted">
             Protótipo acadêmico — os dados ficam salvos apenas neste navegador.
           </p>
+          <p className="mt-2 text-center text-[11px] text-text-muted">
+            Feito com ❤️ para IHC 2026.2
+          </p>
         </div>
       </div>
     </div>
@@ -192,9 +204,9 @@ export default function LoginPage() {
 
 function FeatureItem({ icon: Icon, text }) {
   return (
-    <li className="flex items-center gap-3 text-sm text-white/95">
+    <li className="group flex items-center gap-3 text-sm text-white/95 transition-transform duration-200 hover:translate-x-1">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
-        <Icon size={16} />
+        <Icon size={16} strokeWidth={1.5} />
       </span>
       {text}
     </li>

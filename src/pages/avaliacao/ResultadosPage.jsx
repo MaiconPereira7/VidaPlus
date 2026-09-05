@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { Lock, ShieldCheck, Users, Gauge, BarChart3, Smile } from "lucide-react";
 import SurveyShell from "../../components/SurveyShell";
 import Card from "../../components/Card";
@@ -95,7 +96,7 @@ export default function ResultadosPage() {
       <SurveyShell title="Painel de Resultados">
         <div className="flex flex-col items-center gap-5 py-8 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-amber/10 text-amber">
-            <Lock size={24} strokeWidth={1.75} />
+            <Lock size={24} strokeWidth={1.5} />
           </div>
           <div>
             <h2 className="text-xl font-bold tracking-tight text-text-primary">Acesso restrito</h2>
@@ -128,7 +129,7 @@ export default function ResultadosPage() {
   return (
     <SurveyShell title="Painel de Resultados" onBack={() => navigate("/perfil")} maxWidth="max-w-5xl">
       <div className="mb-5 flex items-center gap-2 rounded-lg bg-accent/10 px-3 py-2 text-xs font-medium text-accent-hover dark:text-accent">
-        <ShieldCheck size={16} /> Acesso liberado — dados agregados deste navegador.
+        <ShieldCheck size={16} strokeWidth={1.5} /> Acesso liberado — dados agregados deste navegador.
       </div>
 
       <div className="mb-5 flex gap-1 overflow-x-auto rounded-lg bg-bg-secondary p-1">
@@ -136,10 +137,17 @@ export default function ResultadosPage() {
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`shrink-0 rounded-md px-4 py-2 text-xs font-semibold transition-colors ${
-              tab === t.key ? "bg-bg-card text-accent shadow-sm" : "text-text-secondary"
+            className={`relative shrink-0 rounded-md px-4 py-2 text-[13px] font-semibold uppercase tracking-wide transition-colors ${
+              tab === t.key ? "text-accent" : "text-text-secondary"
             }`}
           >
+            {tab === t.key && (
+              <motion.span
+                layoutId="resultados-tab-indicator"
+                className="absolute inset-0 -z-10 rounded-md bg-bg-card shadow-sm"
+                transition={{ type: "spring", stiffness: 500, damping: 35 }}
+              />
+            )}
             {t.label}
           </button>
         ))}
@@ -377,11 +385,11 @@ function NpsResults() {
     <Section title="NPS (Net Promoter Score)" count={total}>
       <Card className="mb-3 text-center">
         <p className="meta-label">Score NPS</p>
-        <p className="text-5xl font-bold tracking-tight" style={{ color: zone.color }}>
+        <p className="text-[64px] font-bold leading-none tracking-tight" style={{ color: zone.color }}>
           {Math.round(animatedScore)}
         </p>
         <span
-          className="mt-1 inline-block rounded-full px-3 py-1 text-xs font-bold text-white"
+          className="mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold text-white"
           style={{ backgroundColor: zone.color }}
         >
           Zona de {zone.label}
@@ -391,24 +399,22 @@ function NpsResults() {
         </p>
       </Card>
 
-      <Card className="mb-3">
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p className="text-2xl font-bold text-accent">{promoters}</p>
-            <p className="text-xs text-text-secondary">Promotores ({promotersPct}%)</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-amber">{passives}</p>
-            <p className="text-xs text-text-secondary">
-              Neutros ({Math.round((passives / total) * 100)}%)
-            </p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-danger">{detractors}</p>
-            <p className="text-xs text-text-secondary">Detratores ({detractorsPct}%)</p>
-          </div>
+      <div className="mb-3 grid grid-cols-3 gap-3">
+        <div className="flex-1 rounded-xl bg-accent/10 p-4 text-center">
+          <p className="text-3xl font-bold text-accent">{promoters}</p>
+          <p className="mt-1 text-xs text-text-secondary">Promotores ({promotersPct}%)</p>
         </div>
-      </Card>
+        <div className="flex-1 rounded-xl bg-amber/10 p-4 text-center">
+          <p className="text-3xl font-bold text-amber">{passives}</p>
+          <p className="mt-1 text-xs text-text-secondary">
+            Neutros ({Math.round((passives / total) * 100)}%)
+          </p>
+        </div>
+        <div className="flex-1 rounded-xl bg-danger/10 p-4 text-center">
+          <p className="text-3xl font-bold text-danger">{detractors}</p>
+          <p className="mt-1 text-xs text-text-secondary">Detratores ({detractorsPct}%)</p>
+        </div>
+      </div>
 
       <Card className="overflow-x-auto">
         <p className="section-label mb-3">Respostas individuais</p>
@@ -423,7 +429,10 @@ function NpsResults() {
           </thead>
           <tbody>
             {responses.map((r) => (
-              <tr key={r.id} className="border-b border-border align-top">
+              <tr
+                key={r.id}
+                className="border-b border-border align-top transition-colors odd:bg-transparent even:bg-black/[0.015] hover:bg-black/[0.03] dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+              >
                 <td className="py-2 pr-2 font-medium text-text-primary">{r.respondent}</td>
                 <td className="py-2 pr-2 font-bold text-text-primary">{r.score}</td>
                 <td className="py-2 pr-2">
@@ -492,10 +501,15 @@ function SusResults() {
         <p className="mt-1 text-sm font-semibold" style={{ color: grade.color }}>
           {grade.label}
         </p>
-        <div className="relative mx-auto mt-4 h-2 w-full max-w-sm overflow-hidden rounded-full bg-border">
+        <div
+          className="relative mx-auto mt-4 h-2 w-full max-w-sm overflow-visible rounded-full"
+          style={{
+            background: "linear-gradient(to right, #dc2626, #d97706, #eab308, #84cc16, #059669)",
+          }}
+        >
           <div
-            className="h-full rounded-full transition-all duration-1000 ease-out"
-            style={{ width: `${Math.min(100, avgScore)}%`, backgroundColor: grade.color }}
+            className="absolute top-1/2 h-4 w-4 -translate-y-1/2 -translate-x-1/2 rounded-full border-2 border-white shadow transition-all duration-1000 ease-out dark:border-[#171717]"
+            style={{ left: `${Math.min(100, Math.max(0, avgScore))}%`, backgroundColor: "var(--text-primary)" }}
           />
         </div>
         <div className="mx-auto mt-1 flex max-w-sm justify-between text-[10px] text-text-muted">
@@ -546,7 +560,10 @@ function SusResults() {
             {responses.map((r) => {
               const g = susGrade(r.score);
               return (
-                <tr key={r.id} className="border-b border-border">
+                <tr
+                  key={r.id}
+                  className="border-b border-border transition-colors odd:bg-transparent even:bg-black/[0.015] hover:bg-black/[0.03] dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
+                >
                   <td className="py-2 pr-2 font-medium text-text-primary">{r.respondent}</td>
                   <td className="py-2 pr-2 font-bold text-text-primary">{r.score.toFixed(1)}</td>
                   <td className="py-2 pr-2">

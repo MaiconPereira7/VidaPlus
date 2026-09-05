@@ -6,11 +6,11 @@ function key(email, name) {
 }
 
 export const MOOD_OPTIONS = [
-  { value: 1, emoji: "😢", label: "Péssimo", color: "#ef4444" },
-  { value: 2, emoji: "🙁", label: "Ruim", color: "#f59e0b" },
-  { value: 3, emoji: "😐", label: "Ok", color: "#6b7280" },
-  { value: 4, emoji: "🙂", label: "Bem", color: "#3b82f6" },
-  { value: 5, emoji: "😄", label: "Ótimo", color: "#10b981" },
+  { value: 1, emoji: "😢", label: "Péssimo", color: "#dc2626" },
+  { value: 2, emoji: "🙁", label: "Ruim", color: "#d97706" },
+  { value: 3, emoji: "😐", label: "Ok", color: "#737373" },
+  { value: 4, emoji: "🙂", label: "Bem", color: "#2563eb" },
+  { value: 5, emoji: "😄", label: "Ótimo", color: "#059669" },
 ];
 
 export function moodMeta(value) {

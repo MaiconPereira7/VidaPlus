@@ -145,32 +145,47 @@ export default function SaudePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card className="animate-fade-in-up" style={{ animationDelay: "40ms" }}>
+        <Card className="relative animate-fade-in-up overflow-hidden" style={{ animationDelay: "40ms" }}>
+          <Droplets
+            size={48}
+            strokeWidth={1}
+            className="pointer-events-none absolute -right-1 -top-1 text-[#2563eb] opacity-[0.07]"
+          />
           <div className="mb-2 flex items-center gap-1.5 text-text-secondary">
-            <Droplets size={16} strokeWidth={1.75} />
+            <Droplets size={16} strokeWidth={1.5} />
             <p className="meta-label">Hidratação média (7 dias)</p>
           </div>
-          <p className="text-2xl font-bold tracking-tight text-text-primary">{avgWater} copos</p>
+          <p className="text-[28px] font-bold tracking-tight text-text-primary">{avgWater} copos</p>
         </Card>
-        <Card className="animate-fade-in-up" style={{ animationDelay: "70ms" }}>
+        <Card className="relative animate-fade-in-up overflow-hidden" style={{ animationDelay: "70ms" }}>
+          <Smile
+            size={48}
+            strokeWidth={1}
+            className="pointer-events-none absolute -right-1 -top-1 text-[#7c3aed] opacity-[0.07]"
+          />
           <div className="mb-2 flex items-center gap-1.5 text-text-secondary">
-            <Smile size={16} strokeWidth={1.75} />
+            <Smile size={16} strokeWidth={1.5} />
             <p className="meta-label">Humor mais frequente</p>
           </div>
           {mostFrequentMood ? (
-            <p className="text-2xl font-bold tracking-tight text-text-primary">
+            <p className="text-[28px] font-bold tracking-tight text-text-primary">
               {mostFrequentMood.emoji} {mostFrequentMood.label}
             </p>
           ) : (
             <p className="text-sm text-text-muted">Sem dados</p>
           )}
         </Card>
-        <Card className="animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+        <Card className="relative animate-fade-in-up overflow-hidden" style={{ animationDelay: "100ms" }}>
+          <Pill
+            size={48}
+            strokeWidth={1}
+            className="pointer-events-none absolute -right-1 -top-1 text-accent opacity-[0.07]"
+          />
           <div className="mb-2 flex items-center gap-1.5 text-text-secondary">
-            <Pill size={16} strokeWidth={1.75} />
+            <Pill size={16} strokeWidth={1.5} />
             <p className="meta-label">Dias com medicação completa</p>
           </div>
-          <p className="text-2xl font-bold tracking-tight text-accent">{completeMedDays} / 7</p>
+          <p className="text-[28px] font-bold tracking-tight text-accent">{completeMedDays} / 7</p>
         </Card>
       </div>
 
@@ -198,15 +213,17 @@ export default function SaudePage() {
             </span>
           )}
         </div>
-        <div className="flex justify-between">
+        <div className="relative flex justify-between">
+          <div className="absolute left-5 right-5 top-[18px] h-px bg-border" />
           {last7.map((d) => {
             const value = moodByDate[d];
             const meta = value ? moodMeta(value) : null;
+            const isToday = d === todayISO();
             return (
-              <div key={d} className="flex flex-col items-center gap-1.5">
+              <div key={d} className="relative flex flex-col items-center gap-1.5">
                 <div
-                  className={`flex h-9 w-9 items-center justify-center rounded-full text-lg ${
-                    meta ? "bg-bg-secondary" : ""
+                  className={`flex items-center justify-center rounded-full border bg-bg-card text-base ${
+                    isToday ? "h-10 w-10 border-accent" : "h-9 w-9 border-border"
                   }`}
                 >
                   {meta ? meta.emoji : <span className="text-text-muted">–</span>}
@@ -221,7 +238,7 @@ export default function SaudePage() {
       <Card className="animate-fade-in-up" style={{ animationDelay: "160ms" }}>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-text-secondary">
-            <FileText size={16} strokeWidth={1.75} />
+            <FileText size={16} strokeWidth={1.5} />
             <p className="meta-label">Prontuário / Exames</p>
           </div>
           <button
@@ -299,13 +316,13 @@ export default function SaudePage() {
                     <Fragment key={exam.id}>
                       <tr
                         onClick={() => toggleExpanded(exam.id)}
-                        className="cursor-pointer border-b border-border transition-colors hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+                        className="cursor-pointer border-b border-border transition-colors odd:bg-transparent even:bg-black/[0.015] hover:bg-black/[0.03] dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                       >
                         <td className="py-2.5 pr-2 font-medium text-text-primary">{exam.name}</td>
                         <td className="py-2.5 pr-2 text-text-secondary">{formatDateBR(exam.date)}</td>
                         <td className="py-2.5 pr-2">
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${EXAM_STATUS_STYLES[exam.status]}`}
+                            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${EXAM_STATUS_STYLES[exam.status]}`}
                           >
                             {exam.status}
                           </span>
