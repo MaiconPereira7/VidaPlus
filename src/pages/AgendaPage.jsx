@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Clock, CalendarDays, FileText, ArrowUpRight } from "lucide-react";
@@ -32,12 +32,18 @@ export default function AgendaPage() {
   const email = user.email;
 
   const [selectedDate, setSelectedDate] = useState(todayISO());
-  const [colorsByDate, setColorsByDate] = useState(() => getDateColorsMap(email));
-  const [appointments, setAppointments] = useState(() => getAppointmentsByDate(email, todayISO()));
+  const [colorsByDate, setColorsByDate] = useState(new Map());
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [exams] = useState(() => getExams(email));
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+
+  useEffect(() => {
+    refresh(todayISO());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const examMeta = typeMeta("Exame");
   const examsForDate = useMemo(
@@ -53,14 +59,29 @@ export default function AgendaPage() {
     return map;
   }, [colorsByDate, exams, examMeta.color]);
 
-  function refresh(date = selectedDate) {
-    setAppointments(getAppointmentsByDate(email, date));
-    setColorsByDate(getDateColorsMap(email));
+  async function refresh(date = selectedDate) {
+    setLoading(true);
+    try {
+      const [appts, cores] = await Promise.all([getAppointmentsByDate(date), getDateColorsMap()]);
+      setAppointments(appts);
+      setColorsByDate(cores);
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleSelectDate(date) {
+  async function handleSelectDate(date) {
     setSelectedDate(date);
-    setAppointments(getAppointmentsByDate(email, date));
+    setLoading(true);
+    try {
+      setAppointments(await getAppointmentsByDate(date));
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function openAddModal() {
@@ -81,25 +102,36 @@ export default function AgendaPage() {
     setModalOpen(true);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.title.trim() || !form.date || !form.time) return;
-    if (editingId) {
-      updateAppointment(email, editingId, form);
-      showToast("Compromisso atualizado!");
-    } else {
-      addAppointment(email, form);
-      showToast("Compromisso adicionado!");
+    try {
+      if (editingId) {
+        await updateAppointment(editingId, form);
+        showToast("Compromisso atualizado!");
+      } else {
+        await addAppointment(form);
+        showToast("Compromisso adicionado!");
+      }
+      setSelectedDate(form.date);
+      await refresh(form.date);
+      setModalOpen(false);
+    } catch (err) {
+      // É aqui que um conflito de horário (409 vindo da EXCLUSION
+      // CONSTRAINT do banco) aparece pro usuário — a mensagem já vem
+      // pronta e amigável desde o backend.
+      showToast(err.message, "error");
     }
-    setSelectedDate(form.date);
-    refresh(form.date);
-    setModalOpen(false);
   }
 
-  function handleDelete(id) {
-    deleteAppointment(email, id);
-    refresh();
-    showToast("Compromisso excluído.", "info");
+  async function handleDelete(id) {
+    try {
+      await deleteAppointment(id);
+      await refresh();
+      showToast("Compromisso excluído.", "info");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
   }
 
   const dayLabel = useMemo(() => formatFriendlyDate(selectedDate), [selectedDate]);
@@ -133,7 +165,11 @@ export default function AgendaPage() {
             {dayLabel}
           </p>
 
-          {appointments.length === 0 && examsForDate.length === 0 ? (
+          {loading ? (
+            <Card className="animate-fade-in-up text-center text-sm text-text-muted">
+              Carregando compromissos...
+            </Card>
+          ) : appointments.length === 0 && examsForDate.length === 0 ? (
             <Card className="animate-fade-in-up" style={{ animationDelay: "100ms" }}>
               <EmptyState
                 icon={CalendarDays}

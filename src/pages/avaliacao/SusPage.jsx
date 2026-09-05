@@ -30,11 +30,15 @@ export default function SusPage() {
     });
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (step === SUS_STATEMENTS.length - 1) {
-      const entry = addSusResponse(respondent, answers);
-      setResult(entry);
-      showToast("Avaliação SUS enviada. Obrigado!");
+      try {
+        const entry = await addSusResponse(respondent, answers);
+        setResult(entry);
+        showToast("Avaliação SUS enviada. Obrigado!");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
     } else {
       setStep((s) => s + 1);
     }

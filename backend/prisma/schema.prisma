@@ -1,0 +1,120 @@
+// VidaPlus — Modelagem de dados (PostgreSQL via Prisma)
+//
+// Correção de rumo importante: este é um app de saúde PESSOAL, de uso
+// individual — não uma plataforma clínica com médicos atendendo pacientes.
+// A primeira versão deste schema tinha Usuario/Paciente/Medico (herança
+// por tabela) pensando num sistema clínico completo, mas isso não reflete
+// o produto real: existe só UM tipo de usuário. Manter Paciente/Medico
+// separados aqui seria complexidade sem propósito — exatamente o tipo de
+// over-engineering que se deve evitar.
+//
+// Decisões de design que continuam de pé:
+// 1. Consultas usa uma EXCLUSION CONSTRAINT no nível do banco (ver
+//    schema-reference.sql) para impedir que a MESMA PESSOA marque dois
+//    compromissos de tempo bloqueado (Consulta/Exame) em horários que se
+//    sobrepõem — continua útil mesmo sem médico envolvido: você não pode
+//    estar em dois compromissos ao mesmo tempo.
+// 2. Avaliacoes guarda as respostas em JSONB: os 3 instrumentos (Satisfação,
+//    NPS, SUS) têm formatos de resposta totalmente diferentes entre si,
+//    e não precisamos fazer join relacional sobre essas respostas — só
+//    agregações, que o Postgres faz muito bem em JSONB.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Usuário — único tipo de conta do sistema
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id             String   @id @default(uuid())
+  nome           String
+  email          String   @unique
+  senhaHash      String   @map("senha_hash")
+  cpf            String   @unique
+  dataNascimento DateTime @map("data_nascimento") @db.Date
+  telefone       String?
+  endereco       String?
+  ativo          Boolean  @default(true)
+  criadoEm       DateTime @default(now()) @map("criado_em")
+  atualizadoEm   DateTime @updatedAt @map("atualizado_em")
+
+  consultas  Consulta[]
+  avaliacoes Avaliacao[]
+
+  @@map("usuarios")
+}
+
+// ---------------------------------------------------------------------------
+// Consultas — agenda pessoal (consultas, exames, lembretes, outros)
+// ---------------------------------------------------------------------------
+
+enum StatusConsulta {
+  AGENDADA
+  CONFIRMADA
+  CANCELADA
+  CONCLUIDA
+  FALTOU
+}
+
+enum TipoConsulta {
+  CONSULTA
+  EXAME
+  LEMBRETE
+  OUTRO
+}
+
+model Consulta {
+  id             String         @id @default(uuid())
+  usuarioId      String         @map("usuario_id")
+  usuario        Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  titulo         String
+  dataHoraInicio DateTime       @map("data_hora_inicio")
+  dataHoraFim    DateTime       @map("data_hora_fim")
+  tipo           TipoConsulta   @default(CONSULTA)
+  status         StatusConsulta @default(AGENDADA)
+  observacoes    String?
+  criadoEm       DateTime       @default(now()) @map("criado_em")
+  atualizadoEm   DateTime       @updatedAt @map("atualizado_em")
+
+  // A prevenção real de choque de horário (EXCLUDE USING gist) é criada
+  // via SQL manual na migration — Prisma não tem esse recurso no schema.
+  // Ver prisma/schema-reference.sql para o DDL completo comentado.
+
+  @@index([usuarioId, dataHoraInicio])
+  @@map("consultas")
+}
+
+// ---------------------------------------------------------------------------
+// Avaliações de UX (Satisfação / NPS / SUS)
+// ---------------------------------------------------------------------------
+
+enum TipoAvaliacao {
+  SATISFACAO
+  NPS
+  SUS
+}
+
+model Avaliacao {
+  id              String        @id @default(uuid())
+  tipo            TipoAvaliacao
+  respondenteNome String        @map("respondente_nome")
+  // Opcional: quem responde pode não ter conta (ex.: colega de turma
+  // testando o protótipo sem se cadastrar) — RespondentGate no frontend
+  // só pede o primeiro nome, não exige login.
+  usuarioId       String?       @map("usuario_id")
+  usuario         Usuario?      @relation(fields: [usuarioId], references: [id])
+  respostas       Json
+  score           Decimal?      @db.Decimal(5, 2)
+  categoria       String?
+  criadoEm        DateTime      @default(now()) @map("criado_em")
+
+  @@index([tipo])
+  @@map("avaliacoes")
+}

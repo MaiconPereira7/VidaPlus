@@ -28,11 +28,15 @@ export default function NpsPage() {
   const [comment, setComment] = useState("");
   const [result, setResult] = useState(null);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (score === null) return;
-    const entry = addNpsResponse(respondent, score, comment);
-    setResult(entry);
-    showToast("Resposta enviada. Obrigado!");
+    try {
+      const entry = await addNpsResponse(respondent, score, comment);
+      setResult(entry);
+      showToast("Resposta enviada. Obrigado!");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
   }
 
   if (!respondent) {

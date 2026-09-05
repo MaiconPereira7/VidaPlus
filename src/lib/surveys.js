@@ -1,44 +1,58 @@
-import { readJSON, writeJSON, uid } from "./storage";
+import { api } from "./api";
 
-const SATISFACAO_KEY = "survey:satisfacao";
-const NPS_KEY = "survey:nps";
-const SUS_KEY = "survey:sus";
+// As telas de avaliação e o painel de resultados foram escritos em cima
+// de um formato próprio (respondent/answers/category). O backend guarda
+// em português (respondenteNome/respostas/categoria). Adaptamos aqui, na
+// borda — mesma estratégia de AuthContext.jsx e lib/agenda.js — para não
+// precisar tocar em SatisfacaoPage/NpsPage/SusPage/ResultadosPage.
 
-// ---------- Satisfação ----------
-export function getSatisfacaoResponses() {
-  return readJSON(SATISFACAO_KEY, []);
+function paraResposta(a) {
+  return {
+    id: a.id,
+    respondent: a.respondenteNome,
+    answers: a.respostas,
+    score: a.score !== null && a.score !== undefined ? Number(a.score) : undefined,
+    comment: a.respostas?.comentario,
+    category: a.categoria,
+    timestamp: new Date(a.criadoEm).getTime(),
+  };
 }
 
-export function addSatisfacaoResponse(respondent, answers) {
-  const entry = { id: uid(), respondent, answers, timestamp: Date.now() };
-  const all = [...getSatisfacaoResponses(), entry];
-  writeJSON(SATISFACAO_KEY, all);
-  return entry;
+// ---------- Satisfação ----------
+export async function getSatisfacaoResponses() {
+  const dados = await api.get("/avaliacoes/satisfacao");
+  return dados.map(paraResposta);
+}
+
+export async function addSatisfacaoResponse(respondent, answers) {
+  const criado = await api.post("/avaliacoes/satisfacao", {
+    respondenteNome: respondent,
+    respostas: answers,
+  });
+  return paraResposta(criado);
 }
 
 // ---------- NPS ----------
+// Puro e síncrono de propósito: usado para a prévia de categoria na tela
+// enquanto a pessoa ainda está escolhendo a nota, antes de enviar.
 export function npsCategory(score) {
   if (score >= 9) return "Promotor";
   if (score >= 7) return "Neutro";
   return "Detrator";
 }
 
-export function getNpsResponses() {
-  return readJSON(NPS_KEY, []);
+export async function getNpsResponses() {
+  const dados = await api.get("/avaliacoes/nps");
+  return dados.map(paraResposta);
 }
 
-export function addNpsResponse(respondent, score, comment) {
-  const entry = {
-    id: uid(),
-    respondent,
+export async function addNpsResponse(respondent, score, comment) {
+  const criado = await api.post("/avaliacoes/nps", {
+    respondenteNome: respondent,
     score,
-    comment,
-    category: npsCategory(score),
-    timestamp: Date.now(),
-  };
-  const all = [...getNpsResponses(), entry];
-  writeJSON(NPS_KEY, all);
-  return entry;
+    comentario: comment,
+  });
+  return paraResposta(criado);
 }
 
 // ---------- SUS ----------
@@ -67,16 +81,6 @@ export const SUS_STATEMENTS = [
   },
 ];
 
-export function computeSusScore(answers) {
-  // answers: array of 10 numbers (1-5), index 0 = item 1
-  let total = 0;
-  answers.forEach((value, idx) => {
-    const isOdd = idx % 2 === 0; // items 1,3,5,7,9 (index 0,2,4,6,8)
-    total += isOdd ? value - 1 : 5 - value;
-  });
-  return total * 2.5;
-}
-
 export function susGrade(score) {
   if (score <= 25) return { letter: "F", label: "Pior imaginável", color: "#dc2626" };
   if (score <= 51) return { letter: "D", label: "Ruim", color: "#f97316" };
@@ -85,19 +89,20 @@ export function susGrade(score) {
   return { letter: "A", label: "Excelente", color: "#16a34a" };
 }
 
-export function getSusResponses() {
-  return readJSON(SUS_KEY, []);
+export async function getSusResponses() {
+  const dados = await api.get("/avaliacoes/sus");
+  return dados.map(paraResposta);
 }
 
-export function addSusResponse(respondent, answers) {
-  const score = computeSusScore(answers);
-  const entry = { id: uid(), respondent, answers, score, timestamp: Date.now() };
-  const all = [...getSusResponses(), entry];
-  writeJSON(SUS_KEY, all);
-  return entry;
+export async function addSusResponse(respondent, answers) {
+  // O score do SUS é calculado pelo backend (mesma fórmula, ver
+  // backend/src/utils/surveyMath.js) — uma única fonte de verdade para
+  // uma regra de negócio que não deveria divergir entre front e back.
+  const criado = await api.post("/avaliacoes/sus", { respondenteNome: respondent, respostas: answers });
+  return paraResposta(criado);
 }
 
-// ---------- Estatísticas genéricas ----------
+// ---------- Estatísticas genéricas (usadas no painel de resultados) ----------
 export function mean(values) {
   if (!values.length) return 0;
   return values.reduce((a, b) => a + b, 0) / values.length;

@@ -33,11 +33,15 @@ export default function PerfilPage() {
   const [email, setEmail] = useState(user.email);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  function handleSave() {
+  async function handleSave() {
     if (!name.trim() || !email.trim()) return;
-    updateProfile({ name: name.trim(), email: email.trim().toLowerCase() });
-    setEditing(false);
-    showToast("Perfil atualizado!");
+    try {
+      await updateProfile({ name: name.trim(), email: email.trim().toLowerCase() });
+      setEditing(false);
+      showToast("Perfil atualizado!");
+    } catch (err) {
+      showToast(err.message, "error");
+    }
   }
 
   function handleLogout() {

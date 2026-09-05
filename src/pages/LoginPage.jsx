@@ -11,6 +11,8 @@ import {
   Smile,
   Pill,
   CalendarDays,
+  IdCard,
+  Cake,
 } from "lucide-react";
 import Logo from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
@@ -21,22 +23,44 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [cpf, setCpf] = useState("");
+  const [dataNascimento, setDataNascimento] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const { login, register } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
     if (mode === "cadastro") {
-      if (!name.trim() || !email.trim() || password.length < 4) {
-        setError("Preencha nome, e-mail e uma senha com pelo menos 4 caracteres.");
+      const cpfLimpo = cpf.replace(/\D/g, "");
+      if (!name.trim() || !email.trim() || password.length < 6) {
+        setError("Preencha nome, e-mail e uma senha com pelo menos 6 caracteres.");
         return;
       }
-      const result = register({ name, email, password });
+      if (cpfLimpo.length !== 11) {
+        setError("Informe um CPF válido (11 dígitos).");
+        return;
+      }
+      if (!dataNascimento) {
+        setError("Informe sua data de nascimento.");
+        return;
+      }
+
+      setEnviando(true);
+      const result = await register({
+        name,
+        email,
+        password,
+        cpf: cpfLimpo,
+        dataNascimento,
+      });
+      setEnviando(false);
+
       if (!result.ok) {
         setError(result.error);
         return;
@@ -44,7 +68,10 @@ export default function LoginPage() {
       showToast(`Bem-vindo(a), ${name.split(" ")[0]}!`);
       navigate("/");
     } else {
-      const result = login({ email, password });
+      setEnviando(true);
+      const result = await login({ email, password });
+      setEnviando(false);
+
       if (!result.ok) {
         setError(result.error);
         return;
@@ -133,16 +160,41 @@ export default function LoginPage() {
 
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {mode === "cadastro" && (
-                <div className="relative">
-                  <UserIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Nome completo"
-                    className={inputClass}
-                  />
-                </div>
+                <>
+                  <div className="relative">
+                    <UserIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Nome completo"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <IdCard size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        value={cpf}
+                        onChange={(e) => setCpf(e.target.value)}
+                        placeholder="CPF"
+                        maxLength={14}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div className="relative flex-1">
+                      <Cake size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                      <input
+                        type="date"
+                        value={dataNascimento}
+                        onChange={(e) => setDataNascimento(e.target.value)}
+                        className={`${inputClass} pr-2`}
+                      />
+                    </div>
+                  </div>
+                </>
               )}
               <div className="relative">
                 <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -183,15 +235,16 @@ export default function LoginPage() {
 
               <button
                 type="submit"
-                className="h-12 w-full rounded-lg bg-accent text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover"
+                disabled={enviando}
+                className="h-12 w-full rounded-lg bg-accent text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {mode === "cadastro" ? "Criar conta" : "Entrar"}
+                {enviando ? "Aguarde..." : mode === "cadastro" ? "Criar conta" : "Entrar"}
               </button>
             </form>
           </div>
 
           <p className="mt-6 text-center text-xs text-text-muted">
-            Protótipo acadêmico — os dados ficam salvos apenas neste navegador.
+            Protótipo acadêmico — seus dados de conta ficam no banco do VidaPlus.
           </p>
           <p className="mt-2 text-center text-[11px] text-text-muted">
             Feito com ❤️ para IHC 2026.2

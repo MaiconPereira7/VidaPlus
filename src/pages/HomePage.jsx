@@ -13,6 +13,9 @@ import {
   Clock,
   Smile,
   CalendarOff,
+  Gauge,
+  BarChart3,
+  Activity,
 } from "lucide-react";
 import Card from "../components/Card";
 import ProgressBar from "../components/ProgressBar";
@@ -37,6 +40,7 @@ import {
   toggleMedTakenToday,
 } from "../lib/health";
 import { getTodayReminders, typeMeta } from "../lib/agenda";
+import { getDashboardResumo } from "../lib/dashboard";
 import { todayISO } from "../lib/dates";
 
 const BLUE = "#2563eb";
@@ -58,13 +62,20 @@ export default function HomePage() {
   const [water, setWater] = useState(() => getWaterToday(email));
   const [steps, setSteps] = useState(() => getStepsToday(email));
   const [meds, setMeds] = useState(() => getMeds(email));
-  const [reminders, setReminders] = useState(() => getTodayReminders(email));
+  const [reminders, setReminders] = useState([]);
+  const [gerencial, setGerencial] = useState(null);
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [medForm, setMedForm] = useState(emptyMedForm);
 
   useEffect(() => {
-    setReminders(getTodayReminders(email));
-  }, [email]);
+    getTodayReminders()
+      .then(setReminders)
+      .catch((err) => showToast(err.message, "error"));
+    getDashboardResumo()
+      .then(setGerencial)
+      .catch(() => setGerencial(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleMood(value) {
     const entry = setMoodToday(email, value);
@@ -398,6 +409,51 @@ export default function HomePage() {
               </ul>
             )}
           </Card>
+
+          <Card className="animate-fade-in-up sm:col-span-2" style={{ animationDelay: "200ms" }}>
+            <div className="mb-4 flex items-center gap-1.5 text-text-secondary">
+              <Activity size={16} strokeWidth={1.5} />
+              <span className="meta-label">Visão gerencial do VidaPlus</span>
+            </div>
+            {gerencial === null ? (
+              <p className="text-sm text-text-muted">Carregando indicadores...</p>
+            ) : gerencial === false ? (
+              <p className="text-sm text-text-muted">
+                Não foi possível carregar os indicadores agora.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <IndicadorGerencial
+                  icon={Gauge}
+                  label="NPS"
+                  valor={gerencial.avaliacoes.nps.score ?? "—"}
+                  cor={PURPLE}
+                />
+                <IndicadorGerencial
+                  icon={BarChart3}
+                  label={`SUS${gerencial.avaliacoes.sus.nota ? ` · nota ${gerencial.avaliacoes.sus.nota}` : ""}`}
+                  valor={gerencial.avaliacoes.sus.mediaScore ?? "—"}
+                  cor={gerencial.avaliacoes.sus.corNota || AMBER}
+                />
+                <IndicadorGerencial
+                  icon={Smile}
+                  label="Satisfação"
+                  valor={
+                    gerencial.avaliacoes.satisfacao.mediaGeral !== null
+                      ? `${gerencial.avaliacoes.satisfacao.mediaGeral}/5`
+                      : "—"
+                  }
+                  cor={BLUE}
+                />
+                <IndicadorGerencial
+                  icon={CalendarOff}
+                  label="Consultas registradas"
+                  valor={gerencial.consultas.total}
+                  cor="var(--accent)"
+                />
+              </div>
+            )}
+          </Card>
         </div>
 
         <div className="hidden lg:block">
@@ -487,6 +543,18 @@ export default function HomePage() {
           </button>
         </form>
       </Modal>
+    </div>
+  );
+}
+
+function IndicadorGerencial({ icon: Icon, label, valor, cor }) {
+  return (
+    <div className="rounded-xl bg-bg-primary p-3 text-center dark:bg-[#1a1a1a]">
+      <Icon size={14} strokeWidth={1.5} className="mx-auto mb-1.5" style={{ color: cor }} />
+      <p className="text-xl font-bold tracking-tight" style={{ color: cor }}>
+        {valor}
+      </p>
+      <p className="mt-0.5 truncate text-[10px] text-text-muted">{label}</p>
     </div>
   );
 }

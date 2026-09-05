@@ -1,9 +1,11 @@
-import { readJSON, writeJSON, uid } from "./storage";
-import { todayISO } from "./dates";
+import { api } from "./api";
+import { toISODate, todayISO } from "./dates";
 
-function key(email) {
-  return `u:${email}:appointments`;
-}
+// A UI inteira (AgendaPage, HomePage) foi escrita em cima de um formato
+// "achatado" (title/date/time/type/notes). O backend fala outro dialeto
+// (titulo/dataHoraInicio/dataHoraFim/tipo/observacoes, tipo em maiúsculas).
+// Em vez de reescrever as telas, adaptamos aqui — é a mesma estratégia
+// usada em AuthContext.jsx para o usuário.
 
 export const APPOINTMENT_TYPES = [
   { value: "Consulta", color: "#2563eb" },
@@ -16,27 +18,59 @@ export function typeMeta(type) {
   return APPOINTMENT_TYPES.find((t) => t.value === type) || APPOINTMENT_TYPES[3];
 }
 
-export function getAppointments(email) {
-  return readJSON(key(email), []);
+function paraTipoBackend(tipoFrontend) {
+  return tipoFrontend.toUpperCase();
 }
 
-export function getAppointmentsByDate(email, date) {
-  return getAppointments(email)
-    .filter((a) => a.date === date)
-    .sort((a, b) => a.time.localeCompare(b.time));
+function paraTipoFrontend(tipoBackend) {
+  return tipoBackend.charAt(0) + tipoBackend.slice(1).toLowerCase();
 }
 
-export function getTodayReminders(email) {
-  return getAppointmentsByDate(email, todayISO());
+function combinarDataHora(date, time) {
+  // Sem sufixo de fuso, o motor JS interpreta como horário local — exatamente
+  // o que queremos, já que "date"/"time" vêm de inputs locais do usuário.
+  return new Date(`${date}T${time}:00`).toISOString();
 }
 
-export function getDatesWithAppointments(email) {
-  return new Set(getAppointments(email).map((a) => a.date));
+function somarMinutos(isoDateTime, minutos) {
+  return new Date(new Date(isoDateTime).getTime() + minutos * 60000).toISOString();
 }
 
-export function getDateColorsMap(email) {
+const DURACAO_PADRAO_MINUTOS = 30;
+
+function paraFrontend(consulta) {
+  const inicio = new Date(consulta.dataHoraInicio);
+  return {
+    id: consulta.id,
+    title: consulta.titulo,
+    date: toISODate(inicio),
+    time: `${String(inicio.getHours()).padStart(2, "0")}:${String(inicio.getMinutes()).padStart(2, "0")}`,
+    type: paraTipoFrontend(consulta.tipo),
+    notes: consulta.observacoes || "",
+    status: consulta.status,
+  };
+}
+
+export async function getAppointments() {
+  const consultas = await api.get("/consultas");
+  // Canceladas somem da agenda (mesmo efeito visual de "excluído"), mas
+  // continuam no banco para histórico/auditoria — ver deleteAppointment.
+  return consultas.filter((c) => c.status !== "CANCELADA").map(paraFrontend);
+}
+
+export async function getAppointmentsByDate(date) {
+  const todas = await getAppointments();
+  return todas.filter((a) => a.date === date).sort((a, b) => a.time.localeCompare(b.time));
+}
+
+export async function getTodayReminders() {
+  return getAppointmentsByDate(todayISO());
+}
+
+export async function getDateColorsMap() {
+  const todas = await getAppointments();
   const map = new Map();
-  getAppointments(email).forEach((a) => {
+  todas.forEach((a) => {
     const color = typeMeta(a.type).color;
     const colors = map.get(a.date) || [];
     if (!colors.includes(color)) colors.push(color);
@@ -45,21 +79,33 @@ export function getDateColorsMap(email) {
   return map;
 }
 
-export function addAppointment(email, { title, date, time, type, notes }) {
-  const appts = getAppointments(email);
-  const appt = { id: uid(), title, date, time, type, notes: notes || "" };
-  writeJSON(key(email), [...appts, appt]);
-  return appt;
+export async function addAppointment({ title, date, time, type, notes }) {
+  const inicio = combinarDataHora(date, time);
+  const consulta = await api.post("/consultas", {
+    titulo: title,
+    dataHoraInicio: inicio,
+    dataHoraFim: somarMinutos(inicio, DURACAO_PADRAO_MINUTOS),
+    tipo: paraTipoBackend(type),
+    observacoes: notes || undefined,
+  });
+  return paraFrontend(consulta);
 }
 
-export function updateAppointment(email, id, patch) {
-  const appts = getAppointments(email).map((a) => (a.id === id ? { ...a, ...patch } : a));
-  writeJSON(key(email), appts);
-  return appts;
+export async function updateAppointment(id, { title, date, time, type, notes }) {
+  const inicio = combinarDataHora(date, time);
+  const consulta = await api.patch(`/consultas/${id}`, {
+    titulo: title,
+    dataHoraInicio: inicio,
+    dataHoraFim: somarMinutos(inicio, DURACAO_PADRAO_MINUTOS),
+    tipo: paraTipoBackend(type),
+    observacoes: notes || undefined,
+  });
+  return paraFrontend(consulta);
 }
 
-export function deleteAppointment(email, id) {
-  const appts = getAppointments(email).filter((a) => a.id !== id);
-  writeJSON(key(email), appts);
-  return appts;
+export async function deleteAppointment(id) {
+  // Cancela em vez de apagar de verdade: some da agenda pro usuário, mas
+  // preserva o registro para o histórico/dashboard — a mesma decisão que
+  // já vale para o botão de excluir uma consulta pelo médico.
+  await api.patch(`/consultas/${id}/cancelar`);
 }

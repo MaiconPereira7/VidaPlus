@@ -98,11 +98,15 @@ export default function SatisfacaoPage() {
     setAnswers((a) => ({ ...a, [question.key]: v }));
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (step === QUESTIONS.length - 1) {
-      addSatisfacaoResponse(respondent, answers);
-      setDone(true);
-      showToast("Pesquisa enviada. Obrigado!");
+      try {
+        await addSatisfacaoResponse(respondent, answers);
+        setDone(true);
+        showToast("Pesquisa enviada. Obrigado!");
+      } catch (err) {
+        showToast(err.message, "error");
+      }
     } else {
       setStep((s) => s + 1);
     }

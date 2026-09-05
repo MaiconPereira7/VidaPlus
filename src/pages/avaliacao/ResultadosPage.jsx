@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Lock, ShieldCheck, Users, Gauge, BarChart3, Smile } from "lucide-react";
@@ -43,6 +43,29 @@ const Q4_OPTIONS = [
 ];
 const Q5_OPTIONS = ["Nenhuma dificuldade", "Pouca dificuldade", "Dificuldade moderada", "Muita dificuldade"];
 const Q8_OPTIONS = ["Com certeza sim", "Provavelmente sim", "Talvez", "Provavelmente não", "Com certeza não"];
+
+// Os dados agora vêm da API (antes eram leitura síncrona do localStorage),
+// então cada aba precisa buscar de forma assíncrona. Este hook concentra
+// o padrão "carregando / erro / dados" usado nas 4 abas abaixo.
+function useAsyncResponses(fetcher) {
+  const [state, setState] = useState({ data: null, error: null });
+
+  useEffect(() => {
+    let cancelado = false;
+    fetcher()
+      .then((dados) => {
+        if (!cancelado) setState({ data: dados, error: null });
+      })
+      .catch((err) => {
+        if (!cancelado) setState({ data: [], error: err.message });
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, [fetcher]);
+
+  return state;
+}
 
 function distribution(responses, key, options) {
   const counts = Object.fromEntries(options.map((o) => [o, 0]));
@@ -164,15 +187,37 @@ export default function ResultadosPage() {
 }
 
 function ResumoGeral() {
-  const satisfacao = useMemo(() => getSatisfacaoResponses(), []);
-  const nps = useMemo(() => getNpsResponses(), []);
-  const sus = useMemo(() => getSusResponses(), []);
+  const [dados, setDados] = useState(null);
 
+  useEffect(() => {
+    let cancelado = false;
+    Promise.all([getSatisfacaoResponses(), getNpsResponses(), getSusResponses()])
+      .then(([satisfacao, nps, sus]) => {
+        if (!cancelado) setDados({ satisfacao, nps, sus });
+      })
+      .catch(() => {
+        if (!cancelado) setDados({ satisfacao: [], nps: [], sus: [] });
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
+  // Hooks precisam rodar sempre na mesma ordem — por isso os useMemo abaixo
+  // usam fallback de arrays vazios em vez de retornar cedo antes deles.
+  const satisfacao = dados?.satisfacao ?? [];
+  const nps = dados?.nps ?? [];
+  const sus = dados?.sus ?? [];
+
+  // Dependendo de `dados` (a referência do state) em vez dos arrays
+  // derivados: satisfacao/nps/sus são recriados a cada render pelo `?? []`,
+  // então usá-los como dependência faria o useMemo recalcular sempre —
+  // `dados` só muda de fato quando setDados roda.
   const totalRespondentes = useMemo(() => {
     const names = new Set();
     [...satisfacao, ...nps, ...sus].forEach((r) => r.respondent && names.add(r.respondent.trim().toLowerCase()));
     return names.size;
-  }, [satisfacao, nps, sus]);
+  }, [dados]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const satisfacaoMedia = useMemo(() => {
     if (satisfacao.length === 0) return null;
@@ -184,19 +229,19 @@ function ResumoGeral() {
       });
     });
     return mean(values);
-  }, [satisfacao]);
+  }, [dados]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const npsScore = useMemo(() => {
     if (nps.length === 0) return null;
     const promoters = nps.filter((r) => r.category === "Promotor").length;
     const detractors = nps.filter((r) => r.category === "Detrator").length;
     return Math.round(((promoters - detractors) / nps.length) * 100);
-  }, [nps]);
+  }, [dados]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const susScore = useMemo(() => {
     if (sus.length === 0) return null;
     return mean(sus.map((r) => r.score));
-  }, [sus]);
+  }, [dados]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const findings = useMemo(() => {
     const list = [];
@@ -222,7 +267,11 @@ function ResumoGeral() {
       list.push(`A usabilidade (SUS) foi avaliada com nota ${grade.letter} (${grade.label}), score médio ${susScore.toFixed(1)}.`);
     }
     return list;
-  }, [satisfacao, nps, npsScore, susScore]);
+  }, [dados, npsScore, susScore]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (dados === null) {
+    return <Card className="text-center text-sm text-text-muted">Carregando resumo...</Card>;
+  }
 
   const hasAny = satisfacao.length + nps.length + sus.length > 0;
 
@@ -279,12 +328,20 @@ function ResumoGeral() {
 }
 
 function SatisfacaoResults() {
-  const responses = useMemo(() => getSatisfacaoResponses(), []);
+  const { data: responses, error } = useAsyncResponses(getSatisfacaoResponses);
 
-  if (responses.length === 0) {
+  if (responses === null) {
     return (
       <Section title="Pesquisa de Satisfação">
-        <EmptyState text="Nenhuma resposta registrada ainda." />
+        <EmptyState text="Carregando respostas..." />
+      </Section>
+    );
+  }
+
+  if (error || responses.length === 0) {
+    return (
+      <Section title="Pesquisa de Satisfação">
+        <EmptyState text={error || "Nenhuma resposta registrada ainda."} />
       </Section>
     );
   }
@@ -353,7 +410,8 @@ function SatisfacaoResults() {
 }
 
 function NpsResults() {
-  const responses = useMemo(() => getNpsResponses(), []);
+  const { data, error } = useAsyncResponses(getNpsResponses);
+  const responses = data ?? [];
   const total = responses.length;
   const promoters = responses.filter((r) => r.category === "Promotor").length;
   const passives = responses.filter((r) => r.category === "Neutro").length;
@@ -361,10 +419,18 @@ function NpsResults() {
   const npsScore = total > 0 ? Math.round(((promoters - detractors) / total) * 100) : 0;
   const animatedScore = useCountUp(npsScore, 900);
 
-  if (total === 0) {
+  if (data === null) {
     return (
       <Section title="NPS">
-        <EmptyState text="Nenhuma resposta registrada ainda." />
+        <EmptyState text="Carregando respostas..." />
+      </Section>
+    );
+  }
+
+  if (error || total === 0) {
+    return (
+      <Section title="NPS">
+        <EmptyState text={error || "Nenhuma resposta registrada ainda."} />
       </Section>
     );
   }
@@ -459,15 +525,24 @@ function NpsResults() {
 }
 
 function SusResults() {
-  const responses = useMemo(() => getSusResponses(), []);
+  const { data, error } = useAsyncResponses(getSusResponses);
+  const responses = data ?? [];
   const scores = responses.map((r) => r.score);
   const avgScore = scores.length > 0 ? mean(scores) : 0;
   const animatedAvg = useCountUp(avgScore, 900);
 
-  if (responses.length === 0) {
+  if (data === null) {
     return (
       <Section title="SUS (System Usability Scale)">
-        <EmptyState text="Nenhuma resposta registrada ainda." />
+        <EmptyState text="Carregando respostas..." />
+      </Section>
+    );
+  }
+
+  if (error || responses.length === 0) {
+    return (
+      <Section title="SUS (System Usability Scale)">
+        <EmptyState text={error || "Nenhuma resposta registrada ainda."} />
       </Section>
     );
   }
