@@ -126,7 +126,7 @@ export default function LoginPage() {
         <p className="relative text-xs text-white/60">Protótipo acadêmico — Projeto IHC 2026.2</p>
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-4 py-10 lg:px-12">
+      <div className="flex flex-1 items-center justify-center px-4 pb-10 pt-14 lg:px-12 lg:py-10">
         <div className="w-full max-w-sm">
           <div className="mb-8 flex justify-center lg:hidden">
             <Logo size="lg" withSlogan />

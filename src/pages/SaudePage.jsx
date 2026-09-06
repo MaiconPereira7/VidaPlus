@@ -300,7 +300,7 @@ export default function SaudePage() {
           />
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-sm">
+            <table className="w-full min-w-0 text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-text-muted">
                   <th className="pb-2 pr-2 font-medium">Nome do Exame</th>

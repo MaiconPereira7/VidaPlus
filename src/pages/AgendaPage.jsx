@@ -143,8 +143,8 @@ export default function AgendaPage() {
         <p className="mt-1 text-sm text-text-secondary">Consultas, exames e lembretes.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <Card className="animate-fade-in-up lg:col-span-3" style={{ animationDelay: "40ms" }}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="animate-fade-in-up" style={{ animationDelay: "40ms" }}>
           <MiniCalendar
             selectedDate={selectedDate}
             onSelectDate={handleSelectDate}
@@ -160,7 +160,7 @@ export default function AgendaPage() {
           </div>
         </Card>
 
-        <div className="lg:col-span-2">
+        <div>
           <p className="meta-label mb-3 animate-fade-in-up capitalize" style={{ animationDelay: "70ms" }}>
             {dayLabel}
           </p>
