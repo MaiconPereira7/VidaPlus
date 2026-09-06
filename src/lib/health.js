@@ -28,6 +28,11 @@ export function getMoodToday(email) {
   return log.find((m) => m.date === today) || null;
 }
 
+export function getMoodOnDate(email, date) {
+  const log = getMoodLog(email);
+  return log.find((m) => m.date === date) || null;
+}
+
 export function setMoodToday(email, value) {
   const today = todayISO();
   const log = getMoodLog(email).filter((m) => m.date !== today);
@@ -127,9 +132,9 @@ export function getExams(email) {
   return readJSON(key(email, "exams"), []);
 }
 
-export function addExam(email, { name, date, result, status }) {
+export function addExam(email, { name, date, result, status, local = "" }) {
   const exams = getExams(email);
-  const exam = { id: uid(), name, date, result, status };
+  const exam = { id: uid(), name, date, result, status, local };
   const updated = [exam, ...exams].sort((a, b) => b.date.localeCompare(a.date));
   writeJSON(key(email, "exams"), updated);
   return exam;

@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import {
   Plus,
   FileText,
@@ -11,6 +11,9 @@ import {
   Droplets,
   Smile,
   Pill,
+  Upload,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import Card from "../components/Card";
 import Modal from "../components/Modal";
@@ -35,6 +38,7 @@ import {
   formatDateBR,
   todayISO,
 } from "../lib/dates";
+import { extractPdfText, parseExamPdfText } from "../lib/pdf";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
@@ -61,7 +65,10 @@ export default function SaudePage() {
     date: todayISO(),
     result: "",
     status: "Normal",
+    local: "",
   });
+  const [pdfState, setPdfState] = useState({ status: "idle", fileName: "" });
+  const fileInputRef = useRef(null);
 
   const last7 = useMemo(() => lastNDays(7), []);
   const previous7 = useMemo(() => lastNDaysOffset(7, 7), []);
@@ -127,9 +134,38 @@ export default function SaudePage() {
     if (!form.name.trim() || !form.date) return;
     addExam(email, form);
     setExams(getExams(email));
-    setForm({ name: "", date: todayISO(), result: "", status: "Normal" });
+    resetExamForm();
     setModalOpen(false);
     showToast("Exame adicionado ao prontuário!");
+  }
+
+  function resetExamForm() {
+    setForm({ name: "", date: todayISO(), result: "", status: "Normal", local: "" });
+    setPdfState({ status: "idle", fileName: "" });
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  async function handlePdfSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPdfState({ status: "loading", fileName: file.name });
+    try {
+      const text = await extractPdfText(file);
+      const parsed = parseExamPdfText(text, file.name);
+      setForm((f) => ({
+        ...f,
+        name: parsed.name || f.name,
+        date: parsed.date || f.date,
+        status: parsed.status,
+        local: parsed.local || f.local,
+        result: parsed.result,
+      }));
+      setPdfState({ status: "done", fileName: file.name });
+      showToast("PDF lido! Confira os dados antes de salvar.");
+    } catch {
+      setPdfState({ status: "error", fileName: file.name });
+      showToast("Não foi possível ler esse PDF.", "error");
+    }
   }
 
   function handleDeleteExam(id) {
@@ -318,7 +354,10 @@ export default function SaudePage() {
                         onClick={() => toggleExpanded(exam.id)}
                         className="cursor-pointer border-b border-border transition-colors odd:bg-transparent even:bg-black/[0.015] hover:bg-black/[0.03] dark:even:bg-white/[0.02] dark:hover:bg-white/[0.04]"
                       >
-                        <td className="py-2.5 pr-2 font-medium text-text-primary">{exam.name}</td>
+                        <td className="py-2.5 pr-2">
+                          <p className="font-medium text-text-primary">{exam.name}</p>
+                          {exam.local && <p className="text-xs text-text-muted">{exam.local}</p>}
+                        </td>
                         <td className="py-2.5 pr-2 text-text-secondary">{formatDateBR(exam.date)}</td>
                         <td className="py-2.5 pr-2">
                           <span
@@ -349,7 +388,12 @@ export default function SaudePage() {
                       {isOpen && (
                         <tr className="border-b border-border bg-bg-secondary/60">
                           <td colSpan={4} className="px-2 py-3 text-xs text-text-secondary">
-                            {exam.result || "Nenhuma observação registrada para este exame."}
+                            {exam.local && (
+                              <p className="mb-1 font-medium text-text-primary">Local: {exam.local}</p>
+                            )}
+                            <p className="whitespace-pre-line">
+                              {exam.result || "Nenhuma observação registrada para este exame."}
+                            </p>
                           </td>
                         </tr>
                       )}
@@ -362,8 +406,50 @@ export default function SaudePage() {
         )}
       </Card>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Novo exame">
+      <Modal
+        open={modalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          resetExamForm();
+        }}
+        title="Novo exame"
+      >
         <form onSubmit={handleAddExam} className="space-y-3">
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf"
+              onChange={handlePdfSelect}
+              className="hidden"
+              id="exam-pdf-input"
+            />
+            <label
+              htmlFor="exam-pdf-input"
+              className={`flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed px-3 py-2.5 text-xs font-medium transition-colors ${
+                pdfState.status === "done"
+                  ? "border-accent bg-accent/10 text-accent-hover dark:text-accent"
+                  : "border-border text-text-secondary hover:border-accent hover:text-accent"
+              }`}
+            >
+              {pdfState.status === "loading" ? (
+                <Loader2 size={16} className="shrink-0 animate-spin" />
+              ) : pdfState.status === "done" ? (
+                <CheckCircle2 size={16} className="shrink-0" />
+              ) : (
+                <Upload size={16} className="shrink-0" />
+              )}
+              <span className="truncate">
+                {pdfState.status === "loading"
+                  ? `Lendo ${pdfState.fileName}...`
+                  : pdfState.status === "done"
+                  ? `${pdfState.fileName} — dados preenchidos abaixo`
+                  : pdfState.status === "error"
+                  ? "Erro ao ler o PDF, tente outro arquivo"
+                  : "Importar exame de um PDF (opcional)"}
+              </span>
+            </label>
+          </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-text-secondary">
               Nome do exame
@@ -377,14 +463,26 @@ export default function SaudePage() {
               className={inputClass}
             />
           </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-text-secondary">Data</label>
-            <input
-              type="date"
-              value={form.date}
-              onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              className={inputClass}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">Data</label>
+              <input
+                type="date"
+                value={form.date}
+                onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-secondary">Local</label>
+              <input
+                type="text"
+                value={form.local}
+                onChange={(e) => setForm((f) => ({ ...f, local: e.target.value }))}
+                placeholder="Ex: Laboratório Central"
+                className={inputClass}
+              />
+            </div>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-text-secondary">Resultado</label>

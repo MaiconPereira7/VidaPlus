@@ -13,6 +13,12 @@ export function lastNDays(n) {
   return lastNDaysOffset(n, 0);
 }
 
+export function yesterdayISO() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return toISODate(d);
+}
+
 export function lastNDaysOffset(n, offsetDays) {
   const days = [];
   const now = new Date();

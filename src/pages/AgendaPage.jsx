@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Clock, CalendarDays, FileText, ArrowUpRight } from "lucide-react";
 import Card from "../components/Card";
@@ -29,9 +29,11 @@ export default function AgendaPage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const email = user.email;
+  const initialDate = location.state?.date || todayISO();
 
-  const [selectedDate, setSelectedDate] = useState(todayISO());
+  const [selectedDate, setSelectedDate] = useState(initialDate);
   const [colorsByDate, setColorsByDate] = useState(new Map());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +43,7 @@ export default function AgendaPage() {
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
-    refresh(todayISO());
+    refresh(initialDate);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
