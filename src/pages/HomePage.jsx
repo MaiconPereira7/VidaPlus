@@ -330,7 +330,7 @@ export default function HomePage() {
           </div>
         </Card>
 
-        <Card className="animate-fade-in-up lg:col-span-2" style={{ animationDelay: "130ms" }}>
+        <Card className="hidden animate-fade-in-up md:block lg:col-span-2" style={{ animationDelay: "130ms" }}>
           <p className="section-label mb-3">Resumo do dia</p>
           <div className="flex items-center justify-between gap-4">
             {summaryStats.map((s) => (
