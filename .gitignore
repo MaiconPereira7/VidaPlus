@@ -18,6 +18,7 @@ backend/generated/
 
 # Frontend
 .env
+.env.local
 
 # Editor directories and files
 .vscode/*
