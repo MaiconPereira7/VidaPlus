@@ -11,7 +11,6 @@ import {
   Smile,
   Pill,
   CalendarDays,
-  IdCard,
   Cake,
 } from "lucide-react";
 import Logo from "../components/Logo";
@@ -23,7 +22,6 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [cpf, setCpf] = useState("");
   const [dataNascimento, setDataNascimento] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -37,13 +35,8 @@ export default function LoginPage() {
     setError("");
 
     if (mode === "cadastro") {
-      const cpfLimpo = cpf.replace(/\D/g, "");
       if (!name.trim() || !email.trim() || password.length < 6) {
         setError("Preencha nome, e-mail e uma senha com pelo menos 6 caracteres.");
-        return;
-      }
-      if (cpfLimpo.length !== 11) {
-        setError("Informe um CPF válido (11 dígitos).");
         return;
       }
       if (!dataNascimento) {
@@ -56,7 +49,6 @@ export default function LoginPage() {
         name,
         email,
         password,
-        cpf: cpfLimpo,
         dataNascimento,
       });
       setEnviando(false);
@@ -123,7 +115,7 @@ export default function LoginPage() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-white/60">Protótipo acadêmico — Projeto IHC 2026.2</p>
+        <div />
       </div>
 
       <div className="flex flex-1 items-center justify-center px-4 pb-10 pt-14 lg:px-12 lg:py-10">
@@ -171,28 +163,14 @@ export default function LoginPage() {
                       className={inputClass}
                     />
                   </div>
-                  <div className="flex gap-3">
-                    <div className="relative flex-1">
-                      <IdCard size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        value={cpf}
-                        onChange={(e) => setCpf(e.target.value)}
-                        placeholder="CPF"
-                        maxLength={14}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="relative flex-1">
-                      <Cake size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
-                      <input
-                        type="date"
-                        value={dataNascimento}
-                        onChange={(e) => setDataNascimento(e.target.value)}
-                        className={`${inputClass} pr-2`}
-                      />
-                    </div>
+                  <div className="relative">
+                    <Cake size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                    <input
+                      type="date"
+                      value={dataNascimento}
+                      onChange={(e) => setDataNascimento(e.target.value)}
+                      className={`${inputClass} pr-2`}
+                    />
                   </div>
                 </>
               )}
@@ -242,13 +220,6 @@ export default function LoginPage() {
               </button>
             </form>
           </div>
-
-          <p className="mt-6 text-center text-xs text-text-muted">
-            Protótipo acadêmico — seus dados de conta ficam no banco do VidaPlus.
-          </p>
-          <p className="mt-2 text-center text-[11px] text-text-muted">
-            Feito com ❤️ para IHC 2026.2
-          </p>
         </div>
       </div>
     </div>

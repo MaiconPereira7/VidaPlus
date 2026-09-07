@@ -54,6 +54,10 @@ export function getWaterToday(email) {
   return map[todayISO()] || 0;
 }
 
+export function getWaterOnDate(email, date) {
+  return getWaterMap(email)[date] || 0;
+}
+
 export function setWaterToday(email, count) {
   const map = getWaterMap(email);
   const today = todayISO();
@@ -73,6 +77,10 @@ export function getStepsMap(email) {
 export function getStepsToday(email) {
   const map = getStepsMap(email);
   return map[todayISO()] || 0;
+}
+
+export function getStepsOnDate(email, date) {
+  return getStepsMap(email)[date] || 0;
 }
 
 export function setStepsToday(email, count) {

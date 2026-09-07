@@ -19,6 +19,9 @@ import {
   Gauge,
   BarChart3,
   Activity,
+  ClipboardCheck,
+  ChevronRight,
+  Lock,
 } from "lucide-react";
 import Card from "../components/Card";
 import ProgressBar from "../components/ProgressBar";
@@ -34,9 +37,11 @@ import {
   getMoodOnDate,
   setMoodToday,
   getWaterToday,
+  getWaterOnDate,
   setWaterToday,
   WATER_GOAL,
   getStepsToday,
+  getStepsOnDate,
   setStepsToday,
   STEPS_GOAL,
   getMeds,
@@ -47,6 +52,8 @@ import {
 } from "../lib/health";
 import { getAppointmentsByDate, getDateColorsMap, typeMeta, APPOINTMENT_TYPES } from "../lib/agenda";
 import { getDashboardResumo } from "../lib/dashboard";
+import { getTestProgress, allMissionsDone } from "../lib/testes";
+import { isValidAdminCode } from "../lib/adminAccess";
 import { todayISO, yesterdayISO, formatFriendlyDate, formatShortDate } from "../lib/dates";
 
 const BLUE = "#2563eb";
@@ -73,13 +80,37 @@ export default function HomePage() {
   const [steps, setSteps] = useState(() => getStepsToday(email));
   const [meds, setMeds] = useState(() => getMeds(email));
   const [exams] = useState(() => getExams(email));
+  const [testProgress] = useState(() => getTestProgress(email));
   const [selectedDay, setSelectedDay] = useState(today);
   const [reminders, setReminders] = useState([]);
   const [remindersLoading, setRemindersLoading] = useState(true);
   const [gerencial, setGerencial] = useState(null);
+  const [gerencialUnlocked, setGerencialUnlocked] = useState(false);
+  const [gerencialCode, setGerencialCode] = useState("");
+  const [gerencialError, setGerencialError] = useState("");
   const [calendarColors, setCalendarColors] = useState(new Map());
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [medForm, setMedForm] = useState(emptyMedForm);
+
+  const isSelectedToday = selectedDay === today;
+  const dayWater = useMemo(
+    () => (isSelectedToday ? water : getWaterOnDate(email, selectedDay)),
+    [isSelectedToday, water, email, selectedDay]
+  );
+  const daySteps = useMemo(
+    () => (isSelectedToday ? steps : getStepsOnDate(email, selectedDay)),
+    [isSelectedToday, steps, email, selectedDay]
+  );
+
+  function handleUnlockGerencial(e) {
+    e.preventDefault();
+    if (isValidAdminCode(gerencialCode)) {
+      setGerencialUnlocked(true);
+      setGerencialError("");
+    } else {
+      setGerencialError("Código incorreto.");
+    }
+  }
 
   const examMeta = typeMeta("Exame");
   const examsForSelectedDay = useMemo(
@@ -195,6 +226,34 @@ export default function HomePage() {
         <p className="mt-1 text-sm lowercase text-text-secondary">{dateLabel}</p>
       </div>
 
+      {!allMissionsDone(testProgress) && (
+        <button
+          onClick={() => navigate("/testes")}
+          className="w-full animate-fade-in-up rounded-2xl border border-accent/20 bg-accent/5 p-4 text-left transition-colors hover:bg-accent/10"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                <ClipboardCheck size={20} strokeWidth={1.5} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text-primary">Teste o VidaPlus! 🧪</p>
+                <p className="text-xs text-text-secondary">Complete 3 missões para conhecer o app</p>
+              </div>
+            </div>
+            <ChevronRight size={18} className="shrink-0 text-accent" />
+          </div>
+          <div className="mt-3 flex gap-1.5">
+            {["m1", "m2", "m3"].map((m) => (
+              <div
+                key={m}
+                className={`h-1.5 flex-1 rounded-full ${testProgress[m] ? "bg-accent" : "bg-border"}`}
+              />
+            ))}
+          </div>
+        </button>
+      )}
+
       <div className="-mx-4 overflow-x-auto px-4 md:hidden">
         <div className="flex gap-2.5" style={{ width: "max-content" }}>
           {summaryStats.map((s) => (
@@ -277,79 +336,26 @@ export default function HomePage() {
             <Card className="flex flex-col items-center animate-fade-in-up" style={{ animationDelay: "80ms" }}>
               <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: BLUE }}>
                 <Droplets size={16} strokeWidth={1.5} />
-                <span className="meta-label text-current">Hidratação</span>
+                <span className="meta-label text-current">
+                  {isSelectedToday ? "Hidratação" : `Hidratação · ${formatShortDate(selectedDay)}`}
+                </span>
               </div>
-              <ProgressRing value={water} max={WATER_GOAL} color={BLUE}>
-                <span className="stat-number">{water}</span>
+              <ProgressRing value={dayWater} max={WATER_GOAL} color={BLUE}>
+                <span className="stat-number">{dayWater}</span>
                 <span className="text-[10px] text-text-muted">/ {WATER_GOAL}</span>
               </ProgressRing>
               <p className="mt-2 text-xs text-text-secondary">copos de água</p>
-              <ProgressBar value={water} max={WATER_GOAL} color={BLUE} height="h-1" trackClassName="mt-3" />
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <button
-                  onClick={() => adjustWater(-1)}
-                  disabled={water <= 0}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-                  onMouseEnter={(e) => {
-                    if (water > 0) {
-                      e.currentTarget.style.backgroundColor = BLUE;
-                      e.currentTarget.style.borderColor = BLUE;
-                      e.currentTarget.style.color = "#fff";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "";
-                    e.currentTarget.style.borderColor = "";
-                    e.currentTarget.style.color = "";
-                  }}
-                  aria-label="Remover copo"
-                >
-                  <Minus size={16} strokeWidth={1.5} />
-                </button>
-                <button
-                  onClick={() => adjustWater(1)}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors"
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = BLUE;
-                    e.currentTarget.style.borderColor = BLUE;
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "";
-                    e.currentTarget.style.borderColor = "";
-                    e.currentTarget.style.color = "";
-                  }}
-                  aria-label="Adicionar copo"
-                >
-                  <Plus size={16} strokeWidth={1.5} />
-                </button>
-              </div>
-            </Card>
-
-            <Card className="flex flex-col items-center animate-fade-in-up" style={{ animationDelay: "110ms" }}>
-              <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: AMBER }}>
-                <Footprints size={16} strokeWidth={1.5} />
-                <span className="meta-label text-current">Passos</span>
-              </div>
-              <ProgressRing value={steps} max={STEPS_GOAL} color={AMBER}>
-                <span className="text-2xl font-bold tracking-tight text-text-primary">
-                  {steps >= 1000 ? `${(steps / 1000).toFixed(1)}k` : steps}
-                </span>
-                <span className="text-[10px] text-text-muted">/ {(STEPS_GOAL / 1000).toFixed(0)}k</span>
-              </ProgressRing>
-              <p className="mt-2 text-xs text-text-secondary">meta diária</p>
-              <ProgressBar value={steps} max={STEPS_GOAL} color={AMBER} height="h-1" trackClassName="mt-3" />
-              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                {[1000, 500, 100].map((dec) => (
+              <ProgressBar value={dayWater} max={WATER_GOAL} color={BLUE} height="h-1" trackClassName="mt-3" />
+              {isSelectedToday ? (
+                <div className="mt-4 flex items-center justify-center gap-3">
                   <button
-                    key={`dec-${dec}`}
-                    onClick={() => adjustSteps(-dec)}
-                    disabled={steps <= 0}
-                    className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+                    onClick={() => adjustWater(-1)}
+                    disabled={water <= 0}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
                     onMouseEnter={(e) => {
-                      if (steps > 0) {
-                        e.currentTarget.style.backgroundColor = "var(--danger)";
-                        e.currentTarget.style.borderColor = "var(--danger)";
+                      if (water > 0) {
+                        e.currentTarget.style.backgroundColor = BLUE;
+                        e.currentTarget.style.borderColor = BLUE;
                         e.currentTarget.style.color = "#fff";
                       }
                     }}
@@ -358,19 +364,16 @@ export default function HomePage() {
                       e.currentTarget.style.borderColor = "";
                       e.currentTarget.style.color = "";
                     }}
-                    aria-label={`Remover ${dec} passos`}
+                    aria-label="Remover copo"
                   >
-                    -{dec}
+                    <Minus size={16} strokeWidth={1.5} />
                   </button>
-                ))}
-                {[100, 500, 1000].map((inc) => (
                   <button
-                    key={`inc-${inc}`}
-                    onClick={() => adjustSteps(inc)}
-                    className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors"
+                    onClick={() => adjustWater(1)}
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors"
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = AMBER;
-                      e.currentTarget.style.borderColor = AMBER;
+                      e.currentTarget.style.backgroundColor = BLUE;
+                      e.currentTarget.style.borderColor = BLUE;
                       e.currentTarget.style.color = "#fff";
                     }}
                     onMouseLeave={(e) => {
@@ -378,12 +381,80 @@ export default function HomePage() {
                       e.currentTarget.style.borderColor = "";
                       e.currentTarget.style.color = "";
                     }}
-                    aria-label={`Adicionar ${inc} passos`}
+                    aria-label="Adicionar copo"
                   >
-                    +{inc}
+                    <Plus size={16} strokeWidth={1.5} />
                   </button>
-                ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-center text-xs text-text-muted">Editável apenas para hoje</p>
+              )}
+            </Card>
+
+            <Card className="flex flex-col items-center animate-fade-in-up" style={{ animationDelay: "110ms" }}>
+              <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: AMBER }}>
+                <Footprints size={16} strokeWidth={1.5} />
+                <span className="meta-label text-current">
+                  {isSelectedToday ? "Passos" : `Passos · ${formatShortDate(selectedDay)}`}
+                </span>
               </div>
+              <ProgressRing value={daySteps} max={STEPS_GOAL} color={AMBER}>
+                <span className="text-2xl font-bold tracking-tight text-text-primary">
+                  {daySteps >= 1000 ? `${(daySteps / 1000).toFixed(1)}k` : daySteps}
+                </span>
+                <span className="text-[10px] text-text-muted">/ {(STEPS_GOAL / 1000).toFixed(0)}k</span>
+              </ProgressRing>
+              <p className="mt-2 text-xs text-text-secondary">meta diária</p>
+              <ProgressBar value={daySteps} max={STEPS_GOAL} color={AMBER} height="h-1" trackClassName="mt-3" />
+              {isSelectedToday ? (
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  {[1000, 500, 100].map((dec) => (
+                    <button
+                      key={`dec-${dec}`}
+                      onClick={() => adjustSteps(-dec)}
+                      disabled={steps <= 0}
+                      className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+                      onMouseEnter={(e) => {
+                        if (steps > 0) {
+                          e.currentTarget.style.backgroundColor = "var(--danger)";
+                          e.currentTarget.style.borderColor = "var(--danger)";
+                          e.currentTarget.style.color = "#fff";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "";
+                        e.currentTarget.style.borderColor = "";
+                        e.currentTarget.style.color = "";
+                      }}
+                      aria-label={`Remover ${dec} passos`}
+                    >
+                      -{dec}
+                    </button>
+                  ))}
+                  {[100, 500, 1000].map((inc) => (
+                    <button
+                      key={`inc-${inc}`}
+                      onClick={() => adjustSteps(inc)}
+                      className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = AMBER;
+                        e.currentTarget.style.borderColor = AMBER;
+                        e.currentTarget.style.color = "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "";
+                        e.currentTarget.style.borderColor = "";
+                        e.currentTarget.style.color = "";
+                      }}
+                      aria-label={`Adicionar ${inc} passos`}
+                    >
+                      +{inc}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-center text-xs text-text-muted">Editável apenas para hoje</p>
+              )}
             </Card>
           </div>
         </div>
@@ -579,7 +650,29 @@ export default function HomePage() {
             <Activity size={16} strokeWidth={1.5} />
             <span className="meta-label">Visão gerencial do VidaPlus</span>
           </div>
-          {gerencial === null ? (
+          {!gerencialUnlocked ? (
+            <form onSubmit={handleUnlockGerencial} className="flex flex-wrap items-center gap-3">
+              <span className="flex items-center gap-2 text-sm text-text-muted">
+                <Lock size={15} strokeWidth={1.5} /> Acesso restrito à equipe do projeto.
+              </span>
+              <div className="flex min-w-[220px] flex-1 items-center gap-2">
+                <input
+                  type="password"
+                  value={gerencialCode}
+                  onChange={(e) => setGerencialCode(e.target.value)}
+                  placeholder="Código de acesso"
+                  className="flex-1 rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2"
+                />
+                <button
+                  type="submit"
+                  className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+                >
+                  Ver
+                </button>
+              </div>
+              {gerencialError && <p className="w-full text-xs font-medium text-danger">{gerencialError}</p>}
+            </form>
+          ) : gerencial === null ? (
             <p className="text-sm text-text-muted">Carregando indicadores...</p>
           ) : gerencial === false ? (
             <p className="text-sm text-text-muted">Não foi possível carregar os indicadores agora.</p>

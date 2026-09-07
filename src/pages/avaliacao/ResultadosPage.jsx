@@ -16,8 +16,7 @@ import {
   median,
   stdDev,
 } from "../../lib/surveys";
-
-const ACCESS_CODES = ["admin", "ihc2026"];
+import { isValidAdminCode } from "../../lib/adminAccess";
 
 const TABS = [
   { key: "satisfacao", label: "Satisfação" },
@@ -106,7 +105,7 @@ export default function ResultadosPage() {
 
   function handleUnlock(e) {
     e.preventDefault();
-    if (ACCESS_CODES.includes(code.trim().toLowerCase())) {
+    if (isValidAdminCode(code)) {
       setUnlocked(true);
       setError("");
     } else {

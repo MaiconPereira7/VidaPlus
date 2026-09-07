@@ -11,7 +11,8 @@ export const registrarSchema = {
     telefone: z.string().optional(),
     cpf: z
       .string()
-      .regex(/^\d{11}$/, "CPF deve conter 11 dígitos (somente números)."),
+      .regex(/^\d{11}$/, "CPF deve conter 11 dígitos (somente números).")
+      .optional(),
     dataNascimento: z.string().date("Data de nascimento inválida (use AAAA-MM-DD)."),
   }),
 };

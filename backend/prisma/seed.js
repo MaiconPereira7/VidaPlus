@@ -36,6 +36,17 @@ const Q4_OPCOES = [
 const Q5_OPCOES = ["Nenhuma dificuldade", "Pouca dificuldade", "Dificuldade moderada", "Muita dificuldade"];
 const Q8_OPCOES = ["Com certeza sim", "Provavelmente sim", "Talvez", "Provavelmente não", "Com certeza não"];
 
+const NPS_RESPOSTAS = [
+  { respondenteNome: "Lucas M.", score: 9, comentario: "Interface limpa e fácil de entender. Gostei dos lembretes." },
+  { respondenteNome: "Ana Clara S.", score: 8, comentario: "Bom, mas senti falta de mais opções de personalização." },
+  { respondenteNome: "Pedro H.", score: 10, comentario: "Excelente! Tudo que preciso pra gerenciar minha saúde num lugar só." },
+  { respondenteNome: "Juliana R.", score: 7, comentario: "Funcional, mas o prontuário poderia ter mais filtros." },
+  { respondenteNome: "Rafael T.", score: 9, comentario: "Muito intuitivo, a Home resume tudo que preciso ver no dia." },
+  { respondenteNome: "Camila O.", score: 8, comentario: "Gostei bastante, só achei o cadastro um pouco simples demais." },
+  { respondenteNome: "Thiago B.", score: 6, comentario: "Razoável. Esperava poder adicionar mais de um perfil (família)." },
+  { respondenteNome: "Larissa F.", score: 9, comentario: "Adorei o check-in de humor, uso diário fácil." },
+];
+
 function cpfFicticio(indice) {
   // Formato válido (11 dígitos), sem se preocupar com dígito verificador
   // real — é dado de demonstração, não precisa passar em validação de CPF.
@@ -167,18 +178,18 @@ async function criarAvaliacoes(usuarios) {
     });
   }
 
-  // NPS: 10 respostas com distribuição realista (maioria promotor/neutro).
-  const notasNps = [9, 10, 8, 7, 9, 6, 10, 8, 5, 9];
-  for (const nota of notasNps) {
-    const usuario = amostra(usuarios);
+  // NPS: respostas com nomes e comentários fixos (mais realistas que texto genérico).
+  for (let i = 0; i < NPS_RESPOSTAS.length; i++) {
+    const { respondenteNome, score, comentario } = NPS_RESPOSTAS[i];
+    const usuario = usuarios[i % usuarios.length];
     await prisma.avaliacao.create({
       data: {
         tipo: "NPS",
-        respondenteNome: usuario.nome.split(" ")[0],
+        respondenteNome,
         usuarioId: usuario.id,
-        respostas: { score: nota, comentario: nota >= 9 ? "Uso todo dia, muito prático!" : "É bom, mas pode melhorar." },
-        score: nota,
-        categoria: npsCategoria(nota),
+        respostas: { score, comentario },
+        score,
+        categoria: npsCategoria(score),
       },
     });
   }

@@ -18,17 +18,25 @@ function gerarToken(usuario) {
   return jwt.sign({ sub: usuario.id }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
 }
 
+// CPF temporariamente opcional no cadastro público (ver auth.validators.js) —
+// quando o usuário não informa, geramos um placeholder único só pra satisfazer
+// a coluna cpf @unique do banco, sem bloquear o fluxo de cadastro.
+function gerarCpfPlaceholder() {
+  return `00${Date.now()}`.slice(-9) + String(Math.floor(Math.random() * 100)).padStart(2, "0");
+}
+
 export async function registrar({ nome, email, senha, telefone, cpf, dataNascimento }) {
   const emailEmUso = await prisma.usuario.findUnique({ where: { email } });
   if (emailEmUso) throw ApiError.conflict("Já existe uma conta com este e-mail.");
 
-  const cpfEmUso = await prisma.usuario.findUnique({ where: { cpf } });
+  const cpfFinal = cpf || gerarCpfPlaceholder();
+  const cpfEmUso = await prisma.usuario.findUnique({ where: { cpf: cpfFinal } });
   if (cpfEmUso) throw ApiError.conflict("Já existe uma conta com este CPF.");
 
   const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
 
   const usuario = await prisma.usuario.create({
-    data: { nome, email, telefone, senhaHash, cpf, dataNascimento: new Date(dataNascimento) },
+    data: { nome, email, telefone, senhaHash, cpf: cpfFinal, dataNascimento: new Date(dataNascimento) },
   });
 
   return { token: gerarToken(usuario), usuario: semSenha(usuario) };

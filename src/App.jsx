@@ -11,6 +11,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const SaudePage = lazy(() => import("./pages/SaudePage"));
 const AgendaPage = lazy(() => import("./pages/AgendaPage"));
 const PerfilPage = lazy(() => import("./pages/PerfilPage"));
+const TestesPage = lazy(() => import("./pages/TestesPage"));
 const SatisfacaoPage = lazy(() => import("./pages/avaliacao/SatisfacaoPage"));
 const NpsPage = lazy(() => import("./pages/avaliacao/NpsPage"));
 const SusPage = lazy(() => import("./pages/avaliacao/SusPage"));
@@ -83,6 +84,7 @@ export default function App() {
                 <Route path="/saude" element={<SaudePage />} />
                 <Route path="/agenda" element={<AgendaPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
+                <Route path="/testes" element={<TestesPage />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

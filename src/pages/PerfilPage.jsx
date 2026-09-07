@@ -7,6 +7,7 @@ import {
   Pencil,
   Check,
   ClipboardList,
+  ClipboardCheck,
   Smile,
   Gauge,
   BarChart3,
@@ -18,6 +19,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
+import { getTestProgress, countCompleted } from "../lib/testes";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
@@ -32,6 +34,8 @@ export default function PerfilPage() {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const testProgress = getTestProgress(user.email);
+  const testsCompleted = countCompleted(testProgress);
 
   async function handleSave() {
     if (!name.trim() || !email.trim()) return;
@@ -135,6 +139,15 @@ export default function PerfilPage() {
             <LogOut size={16} strokeWidth={1.5} /> Sair da conta
           </button>
         </div>
+      </div>
+
+      <div className="animate-fade-in-up" style={{ animationDelay: "115ms" }}>
+        <EvalButton
+          onClick={() => navigate("/testes")}
+          icon={ClipboardCheck}
+          title="Testes de Usabilidade"
+          subtitle={`${testsCompleted}/3 missões completas`}
+        />
       </div>
 
       <div className="animate-fade-in-up" style={{ animationDelay: "130ms" }}>
