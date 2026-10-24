@@ -63,6 +63,13 @@ const PURPLE = "#7c3aed";
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
 
+// Botões de ajuste de água/passos. O hover é só CSS (enabled:hover) para não
+// ficar "grudado" quando o botão é desabilitado com o mouse em cima.
+const roundBtn =
+  "flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30";
+const pillBtn =
+  "rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30";
+
 const emptyMedForm = { name: "", dosage: "", time: "", frequency: "diario" };
 
 export default function HomePage() {
@@ -264,7 +271,7 @@ export default function HomePage() {
         </button>
       )}
 
-      <div className="-mx-4 overflow-x-auto px-4 md:hidden">
+      <div className="-mx-5 overflow-x-auto px-5 md:hidden">
         <div className="flex gap-2.5" style={{ width: "max-content" }}>
           {summaryStats.map((s) => (
             <div
@@ -361,36 +368,14 @@ export default function HomePage() {
                   <button
                     onClick={() => adjustWater(-1)}
                     disabled={water <= 0}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-                    onMouseEnter={(e) => {
-                      if (water > 0) {
-                        e.currentTarget.style.backgroundColor = BLUE;
-                        e.currentTarget.style.borderColor = BLUE;
-                        e.currentTarget.style.color = "#fff";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "";
-                      e.currentTarget.style.borderColor = "";
-                      e.currentTarget.style.color = "";
-                    }}
+                    className={`${roundBtn} enabled:hover:border-info enabled:hover:bg-info enabled:hover:text-white`}
                     aria-label="Remover copo"
                   >
                     <Minus size={16} strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={() => adjustWater(1)}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors"
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = BLUE;
-                      e.currentTarget.style.borderColor = BLUE;
-                      e.currentTarget.style.color = "#fff";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "";
-                      e.currentTarget.style.borderColor = "";
-                      e.currentTarget.style.color = "";
-                    }}
+                    className={`${roundBtn} enabled:hover:border-info enabled:hover:bg-info enabled:hover:text-white`}
                     aria-label="Adicionar copo"
                   >
                     <Plus size={16} strokeWidth={1.5} />
@@ -423,19 +408,7 @@ export default function HomePage() {
                       key={`dec-${dec}`}
                       onClick={() => adjustSteps(-dec)}
                       disabled={steps <= 0}
-                      className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30"
-                      onMouseEnter={(e) => {
-                        if (steps > 0) {
-                          e.currentTarget.style.backgroundColor = "var(--danger)";
-                          e.currentTarget.style.borderColor = "var(--danger)";
-                          e.currentTarget.style.color = "#fff";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "";
-                        e.currentTarget.style.borderColor = "";
-                        e.currentTarget.style.color = "";
-                      }}
+                      className={`${pillBtn} enabled:hover:border-danger enabled:hover:bg-danger enabled:hover:text-white`}
                       aria-label={`Remover ${dec} passos`}
                     >
                       -{dec}
@@ -445,17 +418,7 @@ export default function HomePage() {
                     <button
                       key={`inc-${inc}`}
                       onClick={() => adjustSteps(inc)}
-                      className="rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors"
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = AMBER;
-                        e.currentTarget.style.borderColor = AMBER;
-                        e.currentTarget.style.color = "#fff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "";
-                        e.currentTarget.style.borderColor = "";
-                        e.currentTarget.style.color = "";
-                      }}
+                      className={`${pillBtn} enabled:hover:border-amber enabled:hover:bg-amber enabled:hover:text-white`}
                       aria-label={`Adicionar ${inc} passos`}
                     >
                       +{inc}
