@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -91,6 +91,8 @@ export default function HomePage() {
   const [calendarColors, setCalendarColors] = useState(new Map());
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [medForm, setMedForm] = useState(emptyMedForm);
+  // Só a busca mais recente atualiza os lembretes (cliques rápidos no calendário).
+  const dayRequestId = useRef(0);
 
   const isSelectedToday = selectedDay === today;
   const dayWater = useMemo(
@@ -140,11 +142,12 @@ export default function HomePage() {
   }, [calendarColors, exams, examMeta.color]);
 
   function loadDay(date) {
+    const id = ++dayRequestId.current;
     setRemindersLoading(true);
     getAppointmentsByDate(date)
-      .then(setReminders)
-      .catch((err) => showToast(err.message, "error"))
-      .finally(() => setRemindersLoading(false));
+      .then((items) => id === dayRequestId.current && setReminders(items))
+      .catch((err) => id === dayRequestId.current && showToast(err.message, "error"))
+      .finally(() => id === dayRequestId.current && setRemindersLoading(false));
   }
 
   useEffect(() => {

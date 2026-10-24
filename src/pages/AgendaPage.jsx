@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Clock, CalendarDays, FileText, ArrowUpRight } from "lucide-react";
@@ -41,6 +41,9 @@ export default function AgendaPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  // Cada busca ganha um número; só a mais recente pode atualizar a lista.
+  // Evita que a resposta de um dia clicado antes sobrescreva o dia atual.
+  const requestId = useRef(0);
 
   useEffect(() => {
     refresh(initialDate);
@@ -62,27 +65,31 @@ export default function AgendaPage() {
   }, [colorsByDate, exams, examMeta.color]);
 
   async function refresh(date = selectedDate) {
+    const id = ++requestId.current;
     setLoading(true);
     try {
       const [appts, cores] = await Promise.all([getAppointmentsByDate(date), getDateColorsMap()]);
+      if (id !== requestId.current) return;
       setAppointments(appts);
       setColorsByDate(cores);
     } catch (err) {
-      showToast(err.message, "error");
+      if (id === requestId.current) showToast(err.message, "error");
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }
 
   async function handleSelectDate(date) {
+    const id = ++requestId.current;
     setSelectedDate(date);
     setLoading(true);
     try {
-      setAppointments(await getAppointmentsByDate(date));
+      const appts = await getAppointmentsByDate(date);
+      if (id === requestId.current) setAppointments(appts);
     } catch (err) {
-      showToast(err.message, "error");
+      if (id === requestId.current) showToast(err.message, "error");
     } finally {
-      setLoading(false);
+      if (id === requestId.current) setLoading(false);
     }
   }
 
