@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, useCallback } from "react";
-import { api, setToken, getToken } from "../lib/api";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { api, setToken, getToken, SESSION_EXPIRED_EVENT } from "../lib/api";
+import { useToast } from "./ToastContext";
 
 const AuthContext = createContext(null);
 const USER_KEY = "vidaplus_user";
@@ -42,6 +43,19 @@ function limparSessao() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => (getToken() ? lerUsuarioSalvo() : null));
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    function onSessaoExpirada() {
+      // Várias requisições podem falhar juntas; só a primeira encerra a sessão.
+      if (!getToken()) return;
+      limparSessao();
+      setUser(null);
+      showToast("Sua sessão expirou. Entre novamente.", "info");
+    }
+    window.addEventListener(SESSION_EXPIRED_EVENT, onSessaoExpirada);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onSessaoExpirada);
+  }, [showToast]);
 
   const register = useCallback(async ({ name, email, password, cpf, dataNascimento, telefone }) => {
     try {

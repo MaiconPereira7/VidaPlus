@@ -6,6 +6,7 @@
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333/api";
 const TOKEN_KEY = "vidaplus_token";
+export const SESSION_EXPIRED_EVENT = "vidaplus:sessao-expirada";
 
 export function getToken() {
   try {
@@ -44,6 +45,13 @@ async function request(path, { method = "GET", body } = {}) {
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await res.json().catch(() => null) : null;
+
+  // 401 com token enviado = token expirado/inválido. Avisamos o
+  // AuthContext para encerrar a sessão em vez de deixar cada tela exibindo
+  // o mesmo erro sem saída. (No login sem token, 401 é só senha errada.)
+  if (res.status === 401 && token) {
+    window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
+  }
 
   if (!res.ok) {
     throw new Error(data?.error?.message || `Erro inesperado (HTTP ${res.status}).`);
