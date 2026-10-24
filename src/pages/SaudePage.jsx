@@ -38,7 +38,6 @@ import {
   formatDateBR,
   todayISO,
 } from "../lib/dates";
-import { extractPdfText, parseExamPdfText } from "../lib/pdf";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
@@ -153,6 +152,8 @@ export default function SaudePage() {
     if (!file) return;
     setPdfState({ status: "loading", fileName: file.name });
     try {
+      // pdf.js é pesado (~400 KB); só baixa quando o usuário escolhe um PDF.
+      const { extractPdfText, parseExamPdfText } = await import("../lib/pdf");
       const text = await extractPdfText(file);
       const parsed = parseExamPdfText(text, file.name);
       setForm((f) => ({
