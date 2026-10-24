@@ -23,6 +23,8 @@ import { todayISO, formatFriendlyDate } from "../lib/dates";
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
 
+const NEW_BUTTON_SHADOW = "0 6px 20px rgba(5,150,105,0.45)";
+
 const emptyForm = { title: "", date: todayISO(), time: "", type: "Consulta", notes: "" };
 
 export default function AgendaPage() {
@@ -159,9 +161,20 @@ export default function AgendaPage() {
 
   return (
     <div className="space-y-5 pb-16">
-      <div className="animate-fade-in-up">
-        <h1 className="page-title">Agenda</h1>
-        <p className="mt-1 text-sm text-text-secondary">Consultas, exames e lembretes.</p>
+      <div className="flex animate-fade-in-up flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="page-title">Agenda</h1>
+          <p className="mt-1 text-sm text-text-secondary">Consultas, exames e lembretes.</p>
+        </div>
+        {/* Teste de usabilidade: o FAB redondo só com "+" passava despercebido.
+            No desktop o botão fica no cabeçalho, grande e com texto. */}
+        <button
+          onClick={openAddModal}
+          className="hidden h-12 items-center gap-2 rounded-xl bg-accent px-6 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover md:flex"
+          style={{ boxShadow: NEW_BUTTON_SHADOW }}
+        >
+          <Plus size={20} strokeWidth={2.25} /> Novo compromisso
+        </button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -195,7 +208,9 @@ export default function AgendaPage() {
               <EmptyState
                 icon={CalendarDays}
                 title="Nenhum compromisso nesta data"
-                description="Toque no + para adicionar um novo compromisso."
+                description="Que tal agendar uma consulta, exame ou lembrete?"
+                actionLabel="+ Novo compromisso"
+                onAction={openAddModal}
               />
             </Card>
           ) : (
@@ -301,16 +316,15 @@ export default function AgendaPage() {
         </div>
       </div>
 
+      {/* Mobile: FAB estendido, com rótulo, acima da barra de navegação. */}
       <motion.button
         onClick={openAddModal}
-        aria-label="Novo compromisso"
-        whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.96 }}
         transition={{ type: "spring", stiffness: 400, damping: 20 }}
-        className="fixed bottom-24 right-4 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white transition-colors hover:bg-accent-hover md:bottom-8 md:right-8"
-        style={{ boxShadow: "0 4px 14px rgba(5,150,105,0.4)" }}
+        className="fixed bottom-24 right-4 z-30 flex h-14 items-center gap-2 rounded-full bg-accent pl-5 pr-6 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover md:hidden"
+        style={{ boxShadow: NEW_BUTTON_SHADOW }}
       >
-        <Plus size={26} strokeWidth={1.5} />
+        <Plus size={22} strokeWidth={2.25} /> Novo compromisso
       </motion.button>
 
       <Modal
