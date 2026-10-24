@@ -97,9 +97,36 @@ export function getMeds(email) {
   return readJSON(key(email, "meds"), []);
 }
 
-export function addMed(email, { name, time, dosage = "", frequency = "diario" }) {
+// Dias da semana no padrão de Date.getDay(): 0 = domingo ... 6 = sábado.
+export const WEEKDAY_OPTIONS = [
+  { value: 0, short: "D", label: "Domingo" },
+  { value: 1, short: "S", label: "Segunda" },
+  { value: 2, short: "T", label: "Terça" },
+  { value: 3, short: "Q", label: "Quarta" },
+  { value: 4, short: "Q", label: "Quinta" },
+  { value: 5, short: "S", label: "Sexta" },
+  { value: 6, short: "S", label: "Sábado" },
+];
+
+// Medicamento "especifico" só vale nos dias escolhidos; "diario" (e
+// registros antigos sem `days`) vale todo dia.
+export function isMedScheduledOn(med, iso) {
+  if (med.frequency !== "especifico" || !med.days?.length) return true;
+  const [y, m, d] = iso.split("-").map(Number);
+  return med.days.includes(new Date(y, m - 1, d).getDay());
+}
+
+export function addMed(email, { name, time, dosage = "", frequency = "diario", days = [] }) {
   const meds = getMeds(email);
-  const med = { id: uid(), name, time, dosage, frequency, takenDates: [] };
+  const med = {
+    id: uid(),
+    name,
+    time,
+    dosage,
+    frequency,
+    days: frequency === "especifico" ? [...days].sort((a, b) => a - b) : [],
+    takenDates: [],
+  };
   writeJSON(key(email, "meds"), [...meds, med]);
   return med;
 }

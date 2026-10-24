@@ -48,6 +48,8 @@ import {
   addMed,
   deleteMed,
   toggleMedTakenToday,
+  isMedScheduledOn,
+  WEEKDAY_OPTIONS,
   getExams,
 } from "../lib/health";
 import { getAppointmentsByDate, getDateColorsMap, typeMeta, APPOINTMENT_TYPES } from "../lib/agenda";
@@ -70,7 +72,12 @@ const roundBtn =
 const pillBtn =
   "rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30";
 
-const emptyMedForm = { name: "", dosage: "", time: "", frequency: "diario" };
+const emptyMedForm = { name: "", dosage: "", time: "", frequency: "diario", days: [] };
+
+function medDaysLabel(med) {
+  if (med.frequency !== "especifico" || !med.days?.length) return null;
+  return med.days.map((d) => WEEKDAY_OPTIONS[d].label.slice(0, 3).toLowerCase()).join(", ");
+}
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -196,10 +203,19 @@ export default function HomePage() {
     e.preventDefault();
     if (!medForm.name.trim()) return setMedError("Informe o nome do medicamento.");
     if (!medForm.time) return setMedError("Informe o horário do medicamento.");
+    if (medForm.frequency === "especifico" && medForm.days.length === 0)
+      return setMedError("Escolha pelo menos um dia da semana.");
     addMed(email, { ...medForm, name: medForm.name.trim(), dosage: medForm.dosage.trim() });
     setMeds(getMeds(email));
     closeMedModal();
     showToast("Medicamento adicionado!");
+  }
+
+  function toggleMedFormDay(day) {
+    setMedForm((f) => ({
+      ...f,
+      days: f.days.includes(day) ? f.days.filter((d) => d !== day) : [...f.days, day],
+    }));
   }
 
   function closeMedModal() {
@@ -218,15 +234,18 @@ export default function HomePage() {
   }
 
   const sortedMeds = [...meds].sort((a, b) => a.time.localeCompare(b.time));
-  const medsTaken = sortedMeds.filter((m) => m.takenDates.includes(today)).length;
-  const allMedsTaken = sortedMeds.length > 0 && medsTaken === sortedMeds.length;
+  // Remédios de "dias específicos" que não caem hoje continuam na lista (para
+  // o usuário ver que estão cadastrados), mas não contam para o progresso.
+  const todaysMeds = sortedMeds.filter((m) => isMedScheduledOn(m, today));
+  const medsTaken = todaysMeds.filter((m) => m.takenDates.includes(today)).length;
+  const allMedsTaken = todaysMeds.length > 0 && medsTaken === todaysMeds.length;
   const currentMood = mood ? MOOD_OPTIONS.find((m) => m.value === mood.mood) : null;
 
   const summaryStats = [
     {
       icon: Pill,
       label: "Remédios hoje",
-      value: sortedMeds.length ? `${medsTaken}/${sortedMeds.length}` : "—",
+      value: todaysMeds.length ? `${medsTaken}/${todaysMeds.length}` : "—",
       color: "var(--accent)",
     },
     { icon: Droplets, label: "Copos de água", value: water, color: BLUE },
@@ -517,21 +536,35 @@ export default function HomePage() {
               <ul className="divide-y divide-border">
                 {sortedMeds.map((med) => {
                   const taken = med.takenDates.includes(today);
+                  const scheduledToday = isMedScheduledOn(med, today);
+                  const daysLabel = medDaysLabel(med);
                   return (
-                    <li key={med.id} className="group flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <li
+                      key={med.id}
+                      className={`group flex items-center gap-3 py-2.5 first:pt-0 last:pb-0 ${
+                        scheduledToday ? "" : "opacity-60"
+                      }`}
+                    >
                       <span
                         className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: taken ? "var(--accent)" : AMBER }}
+                        style={{
+                          backgroundColor: !scheduledToday ? "var(--border-color)" : taken ? "var(--accent)" : AMBER,
+                        }}
                       />
-                      <button
-                        onClick={() => handleToggleMed(med.id)}
-                        className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
-                          taken ? "border-accent bg-accent" : "border-border"
-                        }`}
-                        aria-label={taken ? "Marcar como não tomado" : "Marcar como tomado"}
-                      >
-                        {taken && <Check size={12} strokeWidth={3} className="text-white" />}
-                      </button>
+                      {scheduledToday ? (
+                        <button
+                          onClick={() => handleToggleMed(med.id)}
+                          className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+                            taken ? "border-accent bg-accent" : "border-border"
+                          }`}
+                          aria-label={`${med.name}: ${taken ? "marcar como não tomado" : "marcar como tomado"}`}
+                          aria-pressed={taken}
+                        >
+                          {taken && <Check size={12} strokeWidth={3} className="text-white" />}
+                        </button>
+                      ) : (
+                        <span className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+                      )}
                       <div className="min-w-0 flex-1">
                         <p
                           className={`truncate text-sm font-medium ${
@@ -543,6 +576,11 @@ export default function HomePage() {
                             <span className="font-normal text-text-muted"> · {med.dosage}</span>
                           )}
                         </p>
+                        {daysLabel && (
+                          <p className="truncate text-[11px] text-text-muted">
+                            {scheduledToday ? daysLabel : `Hoje não · ${daysLabel}`}
+                          </p>
+                        )}
                       </div>
                       <span className="flex shrink-0 items-center gap-1 rounded-full bg-bg-secondary px-2.5 py-1 text-[11px] font-medium text-text-secondary">
                         <Clock size={12} strokeWidth={1.5} />
@@ -551,7 +589,7 @@ export default function HomePage() {
                       <button
                         onClick={() => handleDeleteMed(med.id)}
                         className="shrink-0 text-text-muted transition-opacity hover:text-danger md:opacity-0 md:group-hover:opacity-100"
-                        aria-label="Excluir"
+                        aria-label={`Excluir ${med.name}`}
                       >
                         <Trash2 size={15} strokeWidth={1.5} />
                       </button>
@@ -737,6 +775,32 @@ export default function HomePage() {
               </select>
             </div>
           </div>
+          {medForm.frequency === "especifico" && (
+            <div>
+              <p className="mb-1 block text-xs font-medium text-text-secondary">Dias da semana</p>
+              <div className="flex gap-1.5">
+                {WEEKDAY_OPTIONS.map((d) => {
+                  const active = medForm.days.includes(d.value);
+                  return (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => toggleMedFormDay(d.value)}
+                      aria-label={d.label}
+                      aria-pressed={active}
+                      className={`h-9 flex-1 rounded-lg border text-xs font-semibold transition-colors ${
+                        active
+                          ? "border-accent bg-accent text-white"
+                          : "border-border text-text-secondary hover:border-accent hover:text-accent"
+                      }`}
+                    >
+                      {d.short}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           {medError && (
             <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
               {medError}

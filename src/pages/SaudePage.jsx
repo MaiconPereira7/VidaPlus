@@ -25,6 +25,7 @@ import {
   moodMeta,
   getWaterMap,
   getMeds,
+  isMedScheduledOn,
   getExams,
   addExam,
   deleteExam,
@@ -107,7 +108,10 @@ export default function SaudePage() {
 
   const completeMedDays = useMemo(() => {
     if (meds.length === 0) return 0;
-    return last7.filter((d) => meds.every((m) => m.takenDates.includes(d))).length;
+    return last7.filter((d) => {
+      const scheduled = meds.filter((m) => isMedScheduledOn(m, d));
+      return scheduled.length > 0 && scheduled.every((m) => m.takenDates.includes(d));
+    }).length;
   }, [last7, meds]);
 
   const filteredExams = useMemo(() => {
