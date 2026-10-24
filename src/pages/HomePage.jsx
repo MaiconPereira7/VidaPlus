@@ -330,6 +330,7 @@ export default function HomePage() {
                     }`}
                     style={active ? { boxShadow: "0 0 0 3px var(--accent-glow)" } : undefined}
                     aria-label={m.label}
+                    aria-pressed={active}
                   >
                     <motion.span
                       className="text-xl leading-none"

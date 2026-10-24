@@ -70,6 +70,7 @@ export default function PerfilPage() {
 
   const initials = user.name
     .split(" ")
+    .filter(Boolean)
     .slice(0, 2)
     .map((n) => n[0])
     .join("")
@@ -143,7 +144,12 @@ export default function PerfilPage() {
 
         <div className="space-y-4">
           <Card className="animate-fade-in-up" style={{ animationDelay: "70ms" }}>
-            <button onClick={toggleTheme} className="flex w-full items-center justify-between">
+            <button
+              onClick={toggleTheme}
+              role="switch"
+              aria-checked={theme === "dark"}
+              className="flex w-full items-center justify-between"
+            >
               <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
                 {theme === "dark" ? <Moon size={18} strokeWidth={1.5} /> : <Sun size={18} strokeWidth={1.5} />}
                 Modo escuro

@@ -164,6 +164,8 @@ export default function LoginPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Nome completo"
+                      aria-label="Nome completo"
+                      autoComplete="name"
                       className={inputClass}
                     />
                   </div>
@@ -173,6 +175,9 @@ export default function LoginPage() {
                       type="date"
                       value={dataNascimento}
                       onChange={(e) => setDataNascimento(e.target.value)}
+                      aria-label="Data de nascimento"
+                      title="Data de nascimento"
+                      autoComplete="bday"
                       className={`${inputClass} pr-2`}
                     />
                   </div>
@@ -185,6 +190,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="E-mail"
+                  aria-label="E-mail"
                   autoComplete="email"
                   className={inputClass}
                 />
@@ -196,6 +202,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Senha"
+                  aria-label="Senha"
                   autoComplete={mode === "cadastro" ? "new-password" : "current-password"}
                   className={`${inputClass} pr-10`}
                 />
@@ -210,7 +217,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
+                <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
                   {error}
                 </p>
               )}

@@ -82,7 +82,7 @@ export function formatFriendlyDate(iso) {
 }
 
 export function formatShortDate(iso) {
-  const [y, m, d] = iso.split("-").map(Number);
+  const [, m, d] = iso.split("-").map(Number);
   return `${String(d).padStart(2, "0")} ${MONTH_SHORT[m - 1]}`;
 }
 

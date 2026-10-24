@@ -1,9 +1,10 @@
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function Modal({ open, onClose, title, children }) {
+  const titleId = useId();
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -31,6 +32,9 @@ export default function Modal({ open, onClose, title, children }) {
             aria-hidden="true"
           />
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
@@ -38,7 +42,7 @@ export default function Modal({ open, onClose, title, children }) {
             className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-transparent bg-bg-card p-5 shadow-lg dark:border-border dark:shadow-none sm:rounded-2xl"
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="card-title">{title}</h2>
+              <h2 id={titleId} className="card-title">{title}</h2>
               <button
                 onClick={onClose}
                 className="rounded-full p-1.5 text-text-muted transition-colors hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.06]"
