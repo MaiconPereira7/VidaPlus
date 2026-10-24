@@ -23,6 +23,15 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
     const [y, m] = selectedDate.split("-").map(Number);
     return { year: y, month: m - 1 };
   });
+  const [prevSelected, setPrevSelected] = useState(selectedDate);
+
+  // Se a data selecionada mudar por fora (ex.: compromisso salvo em outro
+  // mês), o calendário acompanha o mês dela.
+  if (selectedDate !== prevSelected) {
+    setPrevSelected(selectedDate);
+    const [y, m] = selectedDate.split("-").map(Number);
+    if (y !== cursor.year || m - 1 !== cursor.month) setCursor({ year: y, month: m - 1 });
+  }
 
   const today = todayISO();
   const numDays = daysInMonth(cursor.year, cursor.month);
