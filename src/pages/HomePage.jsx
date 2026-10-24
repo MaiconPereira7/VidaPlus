@@ -22,6 +22,7 @@ import {
   ClipboardCheck,
   ChevronRight,
   Lock,
+  Undo2,
 } from "lucide-react";
 import Card from "../components/Card";
 import ProgressBar from "../components/ProgressBar";
@@ -69,8 +70,8 @@ const inputClass =
 // ficar "grudado" quando o botão é desabilitado com o mouse em cima.
 const roundBtn =
   "flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30";
-const pillBtn =
-  "rounded-full border border-border px-3 py-1 text-xs font-medium text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30";
+const pillBase =
+  "rounded-full border px-3 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-30";
 
 const emptyMedForm = { name: "", dosage: "", time: "", frequency: "diario", days: [] };
 
@@ -422,28 +423,56 @@ export default function HomePage() {
               <p className="mt-2 text-xs text-text-secondary">meta diária</p>
               <ProgressBar value={daySteps} max={STEPS_GOAL} color={AMBER} height="h-1" trackClassName="mt-3" />
               {isSelectedToday ? (
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  {[1000, 500, 100].map((dec) => (
-                    <button
-                      key={`dec-${dec}`}
-                      onClick={() => adjustSteps(-dec)}
-                      disabled={steps <= 0}
-                      className={`${pillBtn} enabled:hover:border-danger enabled:hover:bg-danger enabled:hover:text-white`}
-                      aria-label={`Remover ${dec} passos`}
+                // Teste de usabilidade: com os seis botões juntos, -1000/-500/-100
+                // pareciam "ações principais". Agora adicionar e corrigir ficam
+                // em grupos separados e rotulados, com a correção em segundo plano.
+                <div className="mt-4 w-full space-y-3">
+                  <div role="group" aria-labelledby="steps-add-label">
+                    <p
+                      id="steps-add-label"
+                      className="mb-1.5 text-center text-[10px] font-semibold uppercase tracking-wide text-amber"
                     >
-                      -{dec}
-                    </button>
-                  ))}
-                  {[100, 500, 1000].map((inc) => (
-                    <button
-                      key={`inc-${inc}`}
-                      onClick={() => adjustSteps(inc)}
-                      className={`${pillBtn} enabled:hover:border-amber enabled:hover:bg-amber enabled:hover:text-white`}
-                      aria-label={`Adicionar ${inc} passos`}
+                      Adicionar passos
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {[100, 500, 1000].map((inc) => (
+                        <button
+                          key={`inc-${inc}`}
+                          onClick={() => adjustSteps(inc)}
+                          className={`${pillBase} border-amber/40 bg-amber/10 font-semibold text-amber enabled:hover:border-amber enabled:hover:bg-amber enabled:hover:text-white`}
+                          aria-label={`Adicionar ${inc} passos`}
+                        >
+                          +{inc}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div
+                    role="group"
+                    aria-labelledby="steps-fix-label"
+                    className="border-t border-dashed border-border pt-2.5"
+                  >
+                    <p
+                      id="steps-fix-label"
+                      className="mb-1.5 flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-text-muted"
                     >
-                      +{inc}
-                    </button>
-                  ))}
+                      <Undo2 size={11} strokeWidth={2} /> Corrigir passos
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
+                      {[100, 500, 1000].map((dec) => (
+                        <button
+                          key={`dec-${dec}`}
+                          onClick={() => adjustSteps(-dec)}
+                          disabled={steps <= 0}
+                          title={`Corrigir: remover ${dec} passos registrados por engano`}
+                          className={`${pillBase} border-border font-medium text-text-muted enabled:hover:border-danger enabled:hover:bg-danger enabled:hover:text-white`}
+                          aria-label={`Corrigir: remover ${dec} passos`}
+                        >
+                          −{dec}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <p className="mt-4 text-center text-xs text-text-muted">Editável apenas para hoje</p>
