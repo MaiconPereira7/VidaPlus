@@ -151,7 +151,7 @@ export default function ResultadosPage() {
   return (
     <SurveyShell title="Painel de Resultados" onBack={() => navigate("/perfil")} maxWidth="max-w-5xl">
       <div className="mb-5 flex items-center gap-2 rounded-lg bg-accent/10 px-3 py-2 text-xs font-medium text-accent-hover dark:text-accent">
-        <ShieldCheck size={16} strokeWidth={1.5} /> Acesso liberado — dados agregados deste navegador.
+        <ShieldCheck size={16} strokeWidth={1.5} /> Acesso liberado — dados agregados de todos os respondentes.
       </div>
 
       <div className="mb-5 flex gap-1 overflow-x-auto rounded-lg bg-bg-secondary p-1">
@@ -442,7 +442,7 @@ function NpsResults() {
       ? { label: "Excelência", color: "var(--accent)" }
       : npsScore >= 50
       ? { label: "Qualidade", color: "var(--accent)" }
-      : npsScore >= 1
+      : npsScore >= 0
       ? { label: "Aperfeiçoamento", color: "var(--amber)" }
       : { label: "Crítica", color: "var(--danger)" };
 
