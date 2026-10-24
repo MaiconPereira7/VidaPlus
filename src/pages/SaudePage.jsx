@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Card from "../components/Card";
 import Modal from "../components/Modal";
+import ConfirmDialog from "../components/ConfirmDialog";
 import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -59,6 +60,9 @@ export default function SaudePage() {
   const [dateFilter, setDateFilter] = useState("");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(() => new Set());
+  // Exame separado do "aberto" para o nome não sumir durante a animação de saída.
+  const [examToDelete, setExamToDelete] = useState(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -176,8 +180,10 @@ export default function SaudePage() {
     }
   }
 
-  function handleDeleteExam(id) {
-    setExams(deleteExam(email, id));
+  function handleConfirmDeleteExam() {
+    if (!examToDelete) return;
+    setExams(deleteExam(email, examToDelete.id));
+    setDeleteOpen(false);
     showToast("Exame removido.", "info");
   }
 
@@ -383,10 +389,11 @@ export default function SaudePage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeleteExam(exam.id);
+                                setExamToDelete(exam);
+                                setDeleteOpen(true);
                               }}
                               className="text-text-muted hover:text-danger"
-                              aria-label="Excluir exame"
+                              aria-label={`Excluir exame ${exam.name}`}
                             >
                               <Trash2 size={15} />
                             </button>
@@ -413,6 +420,15 @@ export default function SaudePage() {
           </div>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleConfirmDeleteExam}
+        title="Excluir exame"
+        description={`Tem certeza que deseja excluir o exame '${examToDelete?.name ?? ""}'? Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+      />
 
       <Modal
         open={modalOpen}
