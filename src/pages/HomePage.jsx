@@ -91,6 +91,7 @@ export default function HomePage() {
   const [calendarColors, setCalendarColors] = useState(new Map());
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [medForm, setMedForm] = useState(emptyMedForm);
+  const [medError, setMedError] = useState("");
   // Só a busca mais recente atualiza os lembretes (cliques rápidos no calendário).
   const dayRequestId = useRef(0);
 
@@ -186,12 +187,18 @@ export default function HomePage() {
 
   function handleAddMed(e) {
     e.preventDefault();
-    if (!medForm.name.trim() || !medForm.time) return;
+    if (!medForm.name.trim()) return setMedError("Informe o nome do medicamento.");
+    if (!medForm.time) return setMedError("Informe o horário do medicamento.");
     addMed(email, { ...medForm, name: medForm.name.trim(), dosage: medForm.dosage.trim() });
     setMeds(getMeds(email));
-    setMedForm(emptyMedForm);
-    setMedModalOpen(false);
+    closeMedModal();
     showToast("Medicamento adicionado!");
+  }
+
+  function closeMedModal() {
+    setMedModalOpen(false);
+    setMedForm(emptyMedForm);
+    setMedError("");
   }
 
   function handleToggleMed(id) {
@@ -714,7 +721,7 @@ export default function HomePage() {
         </Card>
       </div>
 
-      <Modal open={medModalOpen} onClose={() => setMedModalOpen(false)} title="Novo medicamento">
+      <Modal open={medModalOpen} onClose={closeMedModal} title="Novo medicamento">
         <form onSubmit={handleAddMed} className="space-y-3">
           <div>
             <label className="mb-1 block text-xs font-medium text-text-secondary">
@@ -767,6 +774,11 @@ export default function HomePage() {
               </select>
             </div>
           </div>
+          {medError && (
+            <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
+              {medError}
+            </p>
+          )}
           <button
             type="submit"
             className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"

@@ -34,18 +34,33 @@ export default function PerfilPage() {
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [saving, setSaving] = useState(false);
   const testProgress = getTestProgress(user.email);
   const testsCompleted = countCompleted(testProgress);
 
   async function handleSave() {
-    if (!name.trim() || !email.trim()) return;
+    // Mesmas regras do backend (auth.validators.js), checadas antes de enviar.
+    if (name.trim().length < 3) return setProfileError("O nome precisa ter pelo menos 3 caracteres.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setProfileError("Informe um e-mail válido.");
+    setProfileError("");
+    setSaving(true);
     try {
       await updateProfile({ name: name.trim(), email: email.trim().toLowerCase() });
       setEditing(false);
       showToast("Perfil atualizado!");
     } catch (err) {
-      showToast(err.message, "error");
+      setProfileError(err.message);
+    } finally {
+      setSaving(false);
     }
+  }
+
+  function handleCancelEdit() {
+    setName(user.name);
+    setEmail(user.email);
+    setProfileError("");
+    setEditing(false);
   }
 
   function handleLogout() {
@@ -87,23 +102,42 @@ export default function PerfilPage() {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  aria-label="Nome"
                   className={inputClass}
                 />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  aria-label="E-mail"
                   className={inputClass}
                 />
+                {profileError && (
+                  <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
+                    {profileError}
+                  </p>
+                )}
               </div>
             )}
-            <button
-              onClick={() => (editing ? handleSave() : setEditing(true))}
-              className="mt-3 flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            >
-              {editing ? <Check size={14} strokeWidth={1.5} /> : <Pencil size={14} strokeWidth={1.5} />}
-              {editing ? "Salvar alterações" : "Editar dados"}
-            </button>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => (editing ? handleSave() : setEditing(true))}
+                disabled={saving}
+                className="flex items-center gap-1.5 rounded-full border border-border px-4 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-black/[0.04] disabled:cursor-not-allowed disabled:opacity-60 dark:hover:bg-white/[0.06]"
+              >
+                {editing ? <Check size={14} strokeWidth={1.5} /> : <Pencil size={14} strokeWidth={1.5} />}
+                {editing ? (saving ? "Salvando..." : "Salvar alterações") : "Editar dados"}
+              </button>
+              {editing && (
+                <button
+                  onClick={handleCancelEdit}
+                  disabled={saving}
+                  className="rounded-full px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:text-text-primary"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
           </div>
         </Card>
 

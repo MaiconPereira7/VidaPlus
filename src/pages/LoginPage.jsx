@@ -46,8 +46,8 @@ export default function LoginPage() {
 
       setEnviando(true);
       const result = await register({
-        name,
-        email,
+        name: name.trim(),
+        email: email.trim(),
         password,
         dataNascimento,
       });
@@ -60,8 +60,12 @@ export default function LoginPage() {
       showToast(`Bem-vindo(a), ${name.split(" ")[0]}!`);
       navigate("/");
     } else {
+      if (!email.trim() || !password) {
+        setError("Informe seu e-mail e sua senha.");
+        return;
+      }
       setEnviando(true);
-      const result = await login({ email, password });
+      const result = await login({ email: email.trim(), password });
       setEnviando(false);
 
       if (!result.ok) {

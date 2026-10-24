@@ -68,6 +68,7 @@ export default function SaudePage() {
     local: "",
   });
   const [pdfState, setPdfState] = useState({ status: "idle", fileName: "" });
+  const [formError, setFormError] = useState("");
   const fileInputRef = useRef(null);
 
   const last7 = useMemo(() => lastNDays(7), []);
@@ -131,8 +132,9 @@ export default function SaudePage() {
 
   function handleAddExam(e) {
     e.preventDefault();
-    if (!form.name.trim() || !form.date) return;
-    addExam(email, form);
+    if (!form.name.trim()) return setFormError("Informe o nome do exame.");
+    if (!form.date) return setFormError("Informe a data do exame.");
+    addExam(email, { ...form, name: form.name.trim(), local: form.local.trim() });
     setExams(getExams(email));
     resetExamForm();
     setModalOpen(false);
@@ -142,6 +144,7 @@ export default function SaudePage() {
   function resetExamForm() {
     setForm({ name: "", date: todayISO(), result: "", status: "Normal", local: "" });
     setPdfState({ status: "idle", fileName: "" });
+    setFormError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -513,6 +516,11 @@ export default function SaudePage() {
               ))}
             </div>
           </div>
+          {formError && (
+            <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
+              {formError}
+            </p>
+          )}
           <button
             type="submit"
             className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"

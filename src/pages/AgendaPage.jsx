@@ -41,6 +41,8 @@ export default function AgendaPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
   // Cada busca ganha um número; só a mais recente pode atualizar a lista.
   // Evita que a resposta de um dia clicado antes sobrescreva o dia atual.
   const requestId = useRef(0);
@@ -96,6 +98,7 @@ export default function AgendaPage() {
   function openAddModal() {
     setEditingId(null);
     setForm({ ...emptyForm, date: selectedDate });
+    setFormError("");
     setModalOpen(true);
   }
 
@@ -108,18 +111,25 @@ export default function AgendaPage() {
       type: appt.type,
       notes: appt.notes || "",
     });
+    setFormError("");
     setModalOpen(true);
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!form.title.trim() || !form.date || !form.time) return;
+    if (saving) return;
+    if (!form.title.trim()) return setFormError("Informe um título para o compromisso.");
+    if (!form.date) return setFormError("Informe a data do compromisso.");
+    if (!form.time) return setFormError("Informe o horário do compromisso.");
+    setFormError("");
+    setSaving(true);
+    const payload = { ...form, title: form.title.trim() };
     try {
       if (editingId) {
-        await updateAppointment(editingId, form);
+        await updateAppointment(editingId, payload);
         showToast("Compromisso atualizado!");
       } else {
-        await addAppointment(form);
+        await addAppointment(payload);
         showToast("Compromisso adicionado!");
       }
       setSelectedDate(form.date);
@@ -130,6 +140,8 @@ export default function AgendaPage() {
       // CONSTRAINT do banco) aparece pro usuário — a mensagem já vem
       // pronta e amigável desde o backend.
       showToast(err.message, "error");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -370,11 +382,17 @@ export default function AgendaPage() {
               className={`${inputClass} resize-none`}
             />
           </div>
+          {formError && (
+            <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
+              {formError}
+            </p>
+          )}
           <button
             type="submit"
-            className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+            disabled={saving}
+            className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {editingId ? "Salvar alterações" : "Adicionar compromisso"}
+            {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar compromisso"}
           </button>
         </form>
       </Modal>
