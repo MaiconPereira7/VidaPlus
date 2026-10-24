@@ -98,7 +98,9 @@ export async function updateAppointment(id, { title, date, time, type, notes }) 
     dataHoraInicio: inicio,
     dataHoraFim: somarMinutos(inicio, DURACAO_PADRAO_MINUTOS),
     tipo: paraTipoBackend(type),
-    observacoes: notes || undefined,
+    // String vazia (e não undefined) para que apagar as observações na
+    // edição realmente limpe o campo no banco.
+    observacoes: notes ?? "",
   });
   return paraFrontend(consulta);
 }
