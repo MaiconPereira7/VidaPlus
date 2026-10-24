@@ -1,10 +1,14 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation, useOutlet } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import TopNav from "./TopNav";
 import BottomNav from "./BottomNav";
 
 export default function AppLayout() {
   const location = useLocation();
+  // useOutlet() em vez de <Outlet />: o elemento fica "congelado" na página
+  // que está saindo, senão o AnimatePresence anima a saída já mostrando a
+  // página nova.
+  const outlet = useOutlet();
 
   return (
     <div className="min-h-screen bg-bg-primary">
@@ -18,7 +22,7 @@ export default function AppLayout() {
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <Outlet />
+            {outlet}
           </motion.div>
         </AnimatePresence>
       </main>
