@@ -88,6 +88,7 @@ export default function SatisfacaoPage() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [done, setDone] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const question = QUESTIONS[step];
   const value = answers[question?.key];
@@ -100,12 +101,16 @@ export default function SatisfacaoPage() {
 
   async function handleNext() {
     if (step === QUESTIONS.length - 1) {
+      if (sending) return;
+      setSending(true);
       try {
         await addSatisfacaoResponse(respondent, answers);
         setDone(true);
         showToast("Pesquisa enviada. Obrigado!");
       } catch (err) {
         showToast(err.message, "error");
+      } finally {
+        setSending(false);
       }
     } else {
       setStep((s) => s + 1);
@@ -193,10 +198,10 @@ export default function SatisfacaoPage() {
         </button>
         <button
           onClick={handleNext}
-          disabled={!canAdvance}
+          disabled={!canAdvance || sending}
           className="flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {step === QUESTIONS.length - 1 ? "Enviar" : "Próxima"} <ArrowRight size={16} strokeWidth={1.5} />
+          {step === QUESTIONS.length - 1 ? (sending ? "Enviando..." : "Enviar") : "Próxima"} <ArrowRight size={16} strokeWidth={1.5} />
         </button>
       </div>
     </SurveyShell>

@@ -27,15 +27,19 @@ export default function NpsPage() {
   const [score, setScore] = useState(null);
   const [comment, setComment] = useState("");
   const [result, setResult] = useState(null);
+  const [sending, setSending] = useState(false);
 
   async function handleSubmit() {
-    if (score === null) return;
+    if (score === null || sending) return;
+    setSending(true);
     try {
       const entry = await addNpsResponse(respondent, score, comment);
       setResult(entry);
       showToast("Resposta enviada. Obrigado!");
     } catch (err) {
       showToast(err.message, "error");
+    } finally {
+      setSending(false);
     }
   }
 
@@ -143,10 +147,10 @@ export default function NpsPage() {
 
         <button
           onClick={handleSubmit}
-          disabled={score === null}
+          disabled={score === null || sending}
           className="w-full rounded-lg bg-accent py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Enviar resposta
+          {sending ? "Enviando..." : "Enviar resposta"}
         </button>
       </div>
     </SurveyShell>

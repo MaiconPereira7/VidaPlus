@@ -18,6 +18,7 @@ export default function SusPage() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState(Array(10).fill(null));
   const [result, setResult] = useState(null);
+  const [sending, setSending] = useState(false);
 
   const statement = SUS_STATEMENTS[step];
   const value = answers[step];
@@ -32,12 +33,16 @@ export default function SusPage() {
 
   async function handleNext() {
     if (step === SUS_STATEMENTS.length - 1) {
+      if (sending) return;
+      setSending(true);
       try {
         const entry = await addSusResponse(respondent, answers);
         setResult(entry);
         showToast("Avaliação SUS enviada. Obrigado!");
       } catch (err) {
         showToast(err.message, "error");
+      } finally {
+        setSending(false);
       }
     } else {
       setStep((s) => s + 1);
@@ -89,10 +94,10 @@ export default function SusPage() {
         </button>
         <button
           onClick={handleNext}
-          disabled={!value}
+          disabled={!value || sending}
           className="flex items-center gap-1.5 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
         >
-          {step === SUS_STATEMENTS.length - 1 ? "Enviar" : "Próxima"} <ArrowRight size={16} strokeWidth={1.5} />
+          {step === SUS_STATEMENTS.length - 1 ? (sending ? "Enviando..." : "Enviar") : "Próxima"} <ArrowRight size={16} strokeWidth={1.5} />
         </button>
       </div>
     </SurveyShell>
