@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { api, setToken, getToken, SESSION_EXPIRED_EVENT } from "../lib/api";
 import { useToast } from "./ToastContext";
+import { migrateUserKeys } from "../lib/storage";
 
 const AuthContext = createContext(null);
 const USER_KEY = "vidaplus_user";
@@ -91,6 +92,7 @@ export function AuthProvider({ children }) {
   const updateProfile = useCallback(async (patch) => {
     const usuario = await api.patch("/auth/me", { nome: patch.name, email: patch.email });
     const usuarioNormalizado = normalizarUsuario(usuario);
+    migrateUserKeys(lerUsuarioSalvo()?.email, usuarioNormalizado.email);
     salvarSessao(getToken(), usuarioNormalizado);
     setUser(usuarioNormalizado);
     return usuarioNormalizado;
