@@ -44,7 +44,7 @@ export default function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-50 h-14 border-b border-border bg-white/80 backdrop-blur-xl dark:bg-[#0A0A0A]/80 md:h-16">
+    <header className="sticky top-0 z-50 h-14 border-b border-border bg-white/85 backdrop-blur-2xl backdrop-saturate-150 dark:bg-[#0A0A0A]/85 md:h-16">
       <div className="mx-auto flex h-full max-w-screen-2xl items-center justify-between gap-2 px-5 md:px-10 lg:px-16">
         <button onClick={() => navigate("/")} className="flex shrink-0 items-center gap-2">
           <span className="text-xl tracking-tight text-text-primary">
@@ -108,7 +108,7 @@ export default function TopNav() {
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-[11px] font-semibold text-white transition-transform hover:scale-105"
+              className="flex h-[34px] w-[34px] items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-accent/20 transition-transform hover:scale-105"
               style={{ background: "linear-gradient(135deg, #059669, #2563eb)" }}
               aria-label="Menu do usuário"
               aria-expanded={menuOpen}
@@ -123,7 +123,7 @@ export default function TopNav() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: -4 }}
                   transition={{ duration: 0.15 }}
-                  className="absolute right-0 top-[calc(100%+10px)] w-56 rounded-xl border border-transparent bg-bg-card p-2 shadow-lg dark:border-border dark:bg-[#171717] dark:shadow-none"
+                  className="absolute right-0 top-[calc(100%+10px)] w-56 rounded-xl border border-border/50 bg-bg-card p-2 shadow-lg dark:border-border dark:bg-[#171717] dark:shadow-none"
                 >
                   <div className="px-3 py-2">
                     <p className="truncate text-sm font-medium text-text-primary">{user.name}</p>

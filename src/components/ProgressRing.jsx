@@ -15,7 +15,8 @@ export default function ProgressRing({ value, max, size = 100, strokeWidth = 6, 
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--border-color)"
+          stroke={color}
+          strokeOpacity={0.1}
           strokeWidth={strokeWidth}
         />
         <circle
@@ -28,7 +29,10 @@ export default function ProgressRing({ value, max, size = 100, strokeWidth = 6, 
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          style={{ transition: "stroke-dashoffset 1s ease-out" }}
+          style={{
+            transition: "stroke-dashoffset 1s ease-out",
+            filter: pct > 0 ? `drop-shadow(0 0 4px color-mix(in srgb, ${color} 45%, transparent))` : undefined,
+          }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">{children}</div>

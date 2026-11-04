@@ -27,7 +27,7 @@ export default function Modal({ open, onClose, title, children }) {
           transition={{ duration: 0.15 }}
         >
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-md"
             onClick={onClose}
             aria-hidden="true"
           />
@@ -39,7 +39,7 @@ export default function Modal({ open, onClose, title, children }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-transparent bg-bg-card p-5 shadow-lg dark:border-border dark:shadow-none sm:rounded-2xl"
+            className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-transparent bg-bg-card p-5 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3),0_10px_24px_-10px_rgba(0,0,0,0.15)] dark:border-border dark:shadow-none sm:rounded-2xl"
           >
             <div className="mb-4 flex items-center justify-between">
               <h2 id={titleId} className="card-title">{title}</h2>

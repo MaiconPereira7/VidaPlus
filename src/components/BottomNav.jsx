@@ -11,9 +11,13 @@ const ITEMS = [
 export default function BottomNav() {
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/90 backdrop-blur-lg pb-[env(safe-area-inset-bottom)] dark:bg-[#111111]/90 md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-white/85 backdrop-blur-2xl backdrop-saturate-150 pb-[env(safe-area-inset-bottom)] dark:bg-[#111111]/85 md:hidden"
       style={{ height: 68 }}
     >
+      <span
+        className="pointer-events-none absolute inset-x-0 -top-px h-px bg-linear-to-r from-transparent via-accent/60 to-transparent"
+        aria-hidden="true"
+      />
       <div className="mx-auto flex h-full max-w-lg items-stretch justify-around">
         {ITEMS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
@@ -29,9 +33,9 @@ export default function BottomNav() {
                   strokeWidth={1.5}
                   className={isActive ? "text-accent" : "text-text-muted"}
                 />
-                <span>{label}</span>
+                <span className={isActive ? "text-accent" : undefined}>{label}</span>
                 <span
-                  className={`h-[3px] w-[3px] rounded-full transition-opacity ${
+                  className={`h-1 w-1 rounded-full transition-opacity ${
                     isActive ? "bg-accent opacity-100" : "opacity-0"
                   }`}
                 />

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Clock, CalendarDays, FileText, ArrowUpRight } from "lucide-react";
 import Card from "../components/Card";
 import Modal from "../components/Modal";
+import ConfirmDialog from "../components/ConfirmDialog";
 import MiniCalendar from "../components/MiniCalendar";
 import EmptyState from "../components/EmptyState";
 import { useAuth } from "../context/AuthContext";
@@ -21,7 +22,7 @@ import { getExams, EXAM_STATUS_STYLES } from "../lib/health";
 import { todayISO, formatFriendlyDate } from "../lib/dates";
 
 const inputClass =
-  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
+  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
 
 const NEW_BUTTON_SHADOW = "0 6px 20px rgba(5,150,105,0.45)";
 
@@ -45,6 +46,8 @@ export default function AgendaPage() {
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [apptToDelete, setApptToDelete] = useState(null);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   // Cada busca ganha um número; só a mais recente pode atualizar a lista.
   // Evita que a resposta de um dia clicado antes sobrescreva o dia atual.
   const requestId = useRef(0);
@@ -147,9 +150,16 @@ export default function AgendaPage() {
     }
   }
 
-  async function handleDelete(id) {
+  function handleDelete(appt) {
+    setApptToDelete(appt);
+    setConfirmDeleteOpen(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (!apptToDelete) return;
+    setConfirmDeleteOpen(false);
     try {
-      await deleteAppointment(id);
+      await deleteAppointment(apptToDelete.id);
       await refresh();
       showToast("Compromisso excluído.", "info");
     } catch (err) {
@@ -200,15 +210,24 @@ export default function AgendaPage() {
           </p>
 
           {loading ? (
-            <Card className="animate-fade-in-up text-center text-sm text-text-muted">
-              Carregando compromissos...
-            </Card>
+            <ul className="space-y-2.5" aria-busy="true" aria-label="Carregando compromissos">
+              {[0, 1, 2].map((i) => (
+                <li key={i}>
+                  <Card hoverable={false} className="border-l-[3px] border-l-border">
+                    <div className="animate-pulse space-y-2.5">
+                      <div className="h-4 w-16 rounded-full bg-border/60 dark:bg-border" />
+                      <div className="h-4 w-3/4 rounded-md bg-border/60 dark:bg-border" />
+                      <div className="h-3 w-1/3 rounded-md bg-border/60 dark:bg-border" />
+                    </div>
+                  </Card>
+                </li>
+              ))}
+            </ul>
           ) : appointments.length === 0 && examsForDate.length === 0 ? (
             <Card className="animate-fade-in-up" style={{ animationDelay: "100ms" }}>
               <EmptyState
                 icon={CalendarDays}
-                title="Nenhum compromisso nesta data"
-                description="Que tal agendar uma consulta, exame ou lembrete?"
+                description="Nenhum compromisso nesta data. Que tal agendar uma consulta, exame ou lembrete?"
                 actionLabel="+ Novo compromisso"
                 onAction={openAddModal}
               />
@@ -249,7 +268,7 @@ export default function AgendaPage() {
                             <Pencil size={15} strokeWidth={1.5} />
                           </button>
                           <button
-                            onClick={() => handleDelete(appt.id)}
+                            onClick={() => handleDelete(appt)}
                             className="rounded-lg p-1.5 text-text-muted hover:bg-danger/10 hover:text-danger"
                             aria-label="Excluir"
                           >
@@ -326,6 +345,15 @@ export default function AgendaPage() {
       >
         <Plus size={22} strokeWidth={2.25} /> Novo compromisso
       </motion.button>
+
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        onClose={() => setConfirmDeleteOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Excluir compromisso"
+        description={`Tem certeza que deseja excluir o compromisso '${apptToDelete?.title ?? ""}'? Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+      />
 
       <Modal
         open={modalOpen}
@@ -404,7 +432,7 @@ export default function AgendaPage() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-gradient w-full rounded-lg py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           >
             {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Adicionar compromisso"}
           </button>

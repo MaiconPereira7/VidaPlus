@@ -6,23 +6,15 @@ import {
   LogOut,
   Pencil,
   Check,
-  ClipboardList,
-  ClipboardCheck,
-  Smile,
-  Gauge,
-  BarChart3,
-  LineChart,
-  ChevronRight,
 } from "lucide-react";
 import Card from "../components/Card";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
-import { getTestProgress, countCompleted } from "../lib/testes";
 
 const inputClass =
-  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
+  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
 
 export default function PerfilPage() {
   const { user, updateProfile, logout } = useAuth();
@@ -36,8 +28,6 @@ export default function PerfilPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [saving, setSaving] = useState(false);
-  const testProgress = getTestProgress(user.email);
-  const testsCompleted = countCompleted(testProgress);
 
   async function handleSave() {
     // Mesmas regras do backend (auth.validators.js), checadas antes de enviar.
@@ -86,7 +76,7 @@ export default function PerfilPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card className="flex items-center gap-4 animate-fade-in-up" style={{ animationDelay: "40ms" }}>
           <div
-            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white"
+            className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-xl font-bold text-white ring-4 ring-accent/10"
             style={{ background: "linear-gradient(135deg, #059669, #2563eb)" }}
           >
             {initials}
@@ -148,20 +138,20 @@ export default function PerfilPage() {
               onClick={toggleTheme}
               role="switch"
               aria-checked={theme === "dark"}
-              className="flex w-full items-center justify-between"
+              className="flex w-full items-center justify-between gap-3 rounded-lg"
             >
               <span className="flex items-center gap-2 text-sm font-medium text-text-primary">
                 {theme === "dark" ? <Moon size={18} strokeWidth={1.5} /> : <Sun size={18} strokeWidth={1.5} />}
                 Modo escuro
               </span>
               <span
-                className={`relative h-6 w-11 rounded-full transition-colors ${
+                className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
                   theme === "dark" ? "bg-accent" : "bg-border"
                 }`}
               >
                 <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-                    theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                  className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                    theme === "dark" ? "translate-x-5" : "translate-x-0"
                   }`}
                 />
               </span>
@@ -181,47 +171,6 @@ export default function PerfilPage() {
         </div>
       </div>
 
-      <div className="animate-fade-in-up" style={{ animationDelay: "115ms" }}>
-        <EvalButton
-          onClick={() => navigate("/testes")}
-          icon={ClipboardCheck}
-          title="Testes de Usabilidade"
-          subtitle={`${testsCompleted}/3 missões completas`}
-        />
-      </div>
-
-      <div className="animate-fade-in-up" style={{ animationDelay: "130ms" }}>
-        <h2 className="section-label mb-3 flex items-center gap-1.5">
-          <ClipboardList size={14} strokeWidth={1.5} /> Avaliar o VidaPlus
-        </h2>
-        <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
-          <EvalButton
-            onClick={() => navigate("/avaliacao/satisfacao")}
-            icon={Smile}
-            title="Pesquisa de Satisfação"
-            subtitle="10 perguntas sobre sua experiência"
-          />
-          <EvalButton
-            onClick={() => navigate("/avaliacao/nps")}
-            icon={Gauge}
-            title="NPS"
-            subtitle="Qual a chance de recomendar?"
-          />
-          <EvalButton
-            onClick={() => navigate("/avaliacao/sus")}
-            icon={BarChart3}
-            title="Escala SUS"
-            subtitle="Avaliação padronizada de usabilidade"
-          />
-          <EvalButton
-            onClick={() => navigate("/avaliacao/resultados")}
-            icon={LineChart}
-            title="Ver Resultados"
-            subtitle="Acesso restrito (equipe do projeto)"
-          />
-        </div>
-      </div>
-
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
@@ -231,23 +180,5 @@ export default function PerfilPage() {
         confirmLabel="Sair"
       />
     </div>
-  );
-}
-
-function EvalButton({ onClick, icon: Icon, title, subtitle }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-xl border border-transparent bg-bg-card p-3.5 text-left shadow-sm transition-shadow hover:shadow-md dark:border-border dark:shadow-none"
-    >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-secondary text-text-secondary">
-        <Icon size={19} strokeWidth={1.5} />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-text-primary">{title}</p>
-        <p className="truncate text-xs text-text-muted">{subtitle}</p>
-      </div>
-      <ChevronRight size={18} strokeWidth={1.5} className="shrink-0 text-text-muted" />
-    </button>
   );
 }

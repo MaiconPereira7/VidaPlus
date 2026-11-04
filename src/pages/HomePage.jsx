@@ -16,12 +16,6 @@ import {
   CalendarOff,
   Calendar,
   ArrowRight,
-  Gauge,
-  BarChart3,
-  Activity,
-  ClipboardCheck,
-  ChevronRight,
-  Lock,
   Undo2,
 } from "lucide-react";
 import Card from "../components/Card";
@@ -29,6 +23,7 @@ import ProgressBar from "../components/ProgressBar";
 import ProgressRing from "../components/ProgressRing";
 import EmptyState from "../components/EmptyState";
 import Modal from "../components/Modal";
+import ConfirmDialog from "../components/ConfirmDialog";
 import MiniCalendar from "../components/MiniCalendar";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -54,22 +49,27 @@ import {
   getExams,
 } from "../lib/health";
 import { getAppointmentsByDate, getDateColorsMap, typeMeta, APPOINTMENT_TYPES } from "../lib/agenda";
-import { getDashboardResumo } from "../lib/dashboard";
-import { getTestProgress, allMissionsDone } from "../lib/testes";
-import { isValidAdminCode } from "../lib/adminAccess";
 import { todayISO, yesterdayISO, formatFriendlyDate, formatShortDate } from "../lib/dates";
 
 const BLUE = "#2563eb";
 const AMBER = "#d97706";
 const PURPLE = "#7c3aed";
 
+// Entrada dos cards do dashboard: cada um aparece 50ms depois do anterior.
+const MotionCard = motion.create(Card);
+const pageStagger = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
+
 const inputClass =
-  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
+  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
 
 // Botões de ajuste de água/passos. O hover é só CSS (enabled:hover) para não
 // ficar "grudado" quando o botão é desabilitado com o mouse em cima.
 const roundBtn =
-  "flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-30";
+  "flex h-10 w-10 items-center justify-center rounded-full border border-border text-text-secondary transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-30";
 const pillBase =
   "rounded-full border px-3 py-1 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-30";
 
@@ -95,18 +95,15 @@ export default function HomePage() {
   const [steps, setSteps] = useState(() => getStepsToday(email));
   const [meds, setMeds] = useState(() => getMeds(email));
   const [exams] = useState(() => getExams(email));
-  const [testProgress] = useState(() => getTestProgress(email));
   const [selectedDay, setSelectedDay] = useState(today);
   const [reminders, setReminders] = useState([]);
   const [remindersLoading, setRemindersLoading] = useState(true);
-  const [gerencial, setGerencial] = useState(null);
-  const [gerencialUnlocked, setGerencialUnlocked] = useState(false);
-  const [gerencialCode, setGerencialCode] = useState("");
-  const [gerencialError, setGerencialError] = useState("");
   const [calendarColors, setCalendarColors] = useState(new Map());
   const [medModalOpen, setMedModalOpen] = useState(false);
   const [medForm, setMedForm] = useState(emptyMedForm);
   const [medError, setMedError] = useState("");
+  const [medToDelete, setMedToDelete] = useState(null);
+  const [confirmMedDeleteOpen, setConfirmMedDeleteOpen] = useState(false);
   // Só a busca mais recente atualiza os lembretes (cliques rápidos no calendário).
   const dayRequestId = useRef(0);
 
@@ -119,16 +116,6 @@ export default function HomePage() {
     () => (isSelectedToday ? steps : getStepsOnDate(email, selectedDay)),
     [isSelectedToday, steps, email, selectedDay]
   );
-
-  function handleUnlockGerencial(e) {
-    e.preventDefault();
-    if (isValidAdminCode(gerencialCode)) {
-      setGerencialUnlocked(true);
-      setGerencialError("");
-    } else {
-      setGerencialError("Código incorreto.");
-    }
-  }
 
   const examMeta = typeMeta("Exame");
   const examsForSelectedDay = useMemo(
@@ -168,9 +155,6 @@ export default function HomePage() {
 
   useEffect(() => {
     loadDay(today);
-    getDashboardResumo()
-      .then(setGerencial)
-      .catch(() => setGerencial(false));
     getDateColorsMap()
       .then(setCalendarColors)
       .catch(() => {});
@@ -229,8 +213,15 @@ export default function HomePage() {
     setMeds(toggleMedTakenToday(email, id));
   }
 
-  function handleDeleteMed(id) {
-    setMeds(deleteMed(email, id));
+  function handleDeleteMed(med) {
+    setMedToDelete(med);
+    setConfirmMedDeleteOpen(true);
+  }
+
+  function handleConfirmDeleteMed() {
+    if (!medToDelete) return;
+    setMeds(deleteMed(email, medToDelete.id));
+    setConfirmMedDeleteOpen(false);
     showToast("Medicamento removido.", "info");
   }
 
@@ -255,52 +246,24 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="space-y-5">
-      <div className="mb-1">
+    <motion.div className="space-y-5" variants={pageStagger} initial="hidden" animate="show">
+      <motion.div className="mb-1" variants={fadeUp}>
         <h1 className="text-2xl font-bold tracking-tight text-text-primary md:text-3xl">
           Olá, {firstName} 👋
         </h1>
         <p className="mt-1 text-sm lowercase text-text-secondary">{dateLabel}</p>
-      </div>
+      </motion.div>
 
-      {!allMissionsDone(testProgress) && (
-        <button
-          onClick={() => navigate("/testes")}
-          className="w-full animate-fade-in-up rounded-2xl border border-accent/20 bg-accent/5 p-4 text-left transition-colors hover:bg-accent/10"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <ClipboardCheck size={20} strokeWidth={1.5} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-text-primary">Teste o VidaPlus! 🧪</p>
-                <p className="text-xs text-text-secondary">Complete 3 missões para conhecer o app</p>
-              </div>
-            </div>
-            <ChevronRight size={18} className="shrink-0 text-accent" />
-          </div>
-          <div className="mt-3 flex gap-1.5">
-            {["m1", "m2", "m3"].map((m) => (
-              <div
-                key={m}
-                className={`h-1.5 flex-1 rounded-full ${testProgress[m] ? "bg-accent" : "bg-border"}`}
-              />
-            ))}
-          </div>
-        </button>
-      )}
-
-      <div className="-mx-5 overflow-x-auto px-5 md:hidden">
+      <motion.div className="-mx-5 overflow-x-auto px-5 md:hidden" variants={fadeUp}>
         <div className="flex gap-2.5" style={{ width: "max-content" }}>
           {summaryStats.map((s) => (
             <div
               key={s.label}
-              className="flex items-center gap-2.5 whitespace-nowrap rounded-xl border border-border px-3 py-2.5"
+              className="flex items-center gap-2.5 whitespace-nowrap rounded-xl border border-border bg-bg-card px-3 py-2.5 shadow-sm dark:shadow-none"
             >
               <span
                 className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: `${s.color}1a`, color: s.color }}
+                style={{ backgroundColor: `color-mix(in srgb, ${s.color} 10%, transparent)`, color: s.color }}
               >
                 <s.icon size={14} strokeWidth={1.5} />
               </span>
@@ -311,11 +274,14 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
-          <Card className="animate-fade-in-up" style={{ animationDelay: "40ms" }}>
+          <MotionCard
+            variants={fadeUp}
+            className="bg-linear-to-br from-accent/[0.06] to-transparent dark:from-accent/[0.07]"
+          >
             <p className="meta-label mb-4">Check-in de humor</p>
             <div className="flex flex-wrap justify-center gap-2">
               {MOOD_OPTIONS.map((m) => {
@@ -325,17 +291,24 @@ export default function HomePage() {
                     key={m.value}
                     onClick={() => handleMood(m.value)}
                     className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 transition-all duration-150 ${
-                      active
-                        ? "border-accent bg-accent/10 text-accent"
-                        : "border-border text-text-secondary opacity-70 hover:opacity-100"
+                      active ? "font-semibold" : "border-border text-text-secondary opacity-70 hover:opacity-100"
                     }`}
-                    style={active ? { boxShadow: "0 0 0 3px var(--accent-glow)" } : undefined}
+                    style={
+                      active
+                        ? {
+                            borderColor: m.color,
+                            backgroundColor: `color-mix(in srgb, ${m.color} 10%, transparent)`,
+                            color: m.color,
+                            boxShadow: `0 0 0 3px color-mix(in srgb, ${m.color} 22%, transparent), 0 10px 24px -10px color-mix(in srgb, ${m.color} 55%, transparent)`,
+                          }
+                        : undefined
+                    }
                     aria-label={m.label}
                     aria-pressed={active}
                   >
                     <motion.span
                       className="text-xl leading-none"
-                      animate={{ scale: active ? 1.15 : 1 }}
+                      animate={{ scale: active ? 1.2 : 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     >
                       {m.emoji}
@@ -368,10 +341,10 @@ export default function HomePage() {
                 "Ontem: sem registro"
               )}
             </p>
-          </Card>
+          </MotionCard>
 
           <div className="grid grid-cols-2 gap-4">
-            <Card className="flex flex-col items-center animate-fade-in-up" style={{ animationDelay: "80ms" }}>
+            <MotionCard variants={fadeUp} className="flex flex-col items-center bg-linear-to-br from-info/[0.06] to-transparent dark:from-info/10">
               <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: BLUE }}>
                 <Droplets size={16} strokeWidth={1.5} />
                 <span className="meta-label text-current">
@@ -389,14 +362,14 @@ export default function HomePage() {
                   <button
                     onClick={() => adjustWater(-1)}
                     disabled={water <= 0}
-                    className={`${roundBtn} enabled:hover:border-info enabled:hover:bg-info enabled:hover:text-white`}
+                    className={`${roundBtn} enabled:hover:border-danger/30 enabled:hover:bg-danger/10 enabled:hover:text-danger`}
                     aria-label="Remover copo"
                   >
                     <Minus size={16} strokeWidth={1.5} />
                   </button>
                   <button
                     onClick={() => adjustWater(1)}
-                    className={`${roundBtn} enabled:hover:border-info enabled:hover:bg-info enabled:hover:text-white`}
+                    className={`${roundBtn} enabled:hover:border-accent/30 enabled:hover:bg-accent/10 enabled:hover:text-accent`}
                     aria-label="Adicionar copo"
                   >
                     <Plus size={16} strokeWidth={1.5} />
@@ -405,9 +378,9 @@ export default function HomePage() {
               ) : (
                 <p className="mt-4 text-center text-xs text-text-muted">Editável apenas para hoje</p>
               )}
-            </Card>
+            </MotionCard>
 
-            <Card className="flex flex-col items-center animate-fade-in-up" style={{ animationDelay: "110ms" }}>
+            <MotionCard variants={fadeUp} className="flex flex-col items-center bg-linear-to-br from-amber/[0.06] to-transparent dark:from-amber/10">
               <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: AMBER }}>
                 <Footprints size={16} strokeWidth={1.5} />
                 <span className="meta-label text-current">
@@ -477,11 +450,11 @@ export default function HomePage() {
               ) : (
                 <p className="mt-4 text-center text-xs text-text-muted">Editável apenas para hoje</p>
               )}
-            </Card>
+            </MotionCard>
           </div>
         </div>
 
-        <Card className="animate-fade-in-up" style={{ animationDelay: "60ms" }}>
+        <MotionCard variants={fadeUp}>
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-text-secondary">
               <Calendar size={16} strokeWidth={1.5} />
@@ -507,17 +480,21 @@ export default function HomePage() {
               </span>
             ))}
           </div>
-        </Card>
+        </MotionCard>
       </div>
 
-      <Card className="hidden animate-fade-in-up md:block" style={{ animationDelay: "130ms" }}>
+      <MotionCard variants={fadeUp} className="hidden md:block">
         <p className="section-label mb-3">Resumo do dia</p>
         <div className="flex items-center justify-between gap-4">
           {summaryStats.map((s) => (
             <div key={s.label} className="flex items-center gap-3">
               <span
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-                style={{ backgroundColor: `${s.color}1a`, color: s.color }}
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${s.color} 10%, transparent)`,
+                  borderColor: `color-mix(in srgb, ${s.color} 25%, transparent)`,
+                  color: s.color,
+                }}
               >
                 <s.icon size={18} strokeWidth={1.5} />
               </span>
@@ -528,10 +505,10 @@ export default function HomePage() {
             </div>
           ))}
         </div>
-      </Card>
+      </MotionCard>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="animate-fade-in-up md:col-span-2" style={{ animationDelay: "160ms" }}>
+        <MotionCard variants={fadeUp} className="md:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-text-secondary">
               <Pill size={16} strokeWidth={1.5} />
@@ -547,7 +524,9 @@ export default function HomePage() {
           </div>
           {sortedMeds.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-6 text-center">
-              <Pill size={40} strokeWidth={1.5} className="text-text-muted" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                <Pill size={32} strokeWidth={1.5} className="opacity-70" />
+              </div>
               <div>
                 <p className="text-sm font-medium text-text-secondary">Nenhum medicamento cadastrado</p>
                 <p className="mt-0.5 max-w-[240px] text-xs text-text-muted">
@@ -571,8 +550,8 @@ export default function HomePage() {
                   return (
                     <li
                       key={med.id}
-                      className={`group flex items-center gap-3 py-2.5 first:pt-0 last:pb-0 ${
-                        scheduledToday ? "" : "opacity-60"
+                      className={`group flex items-center gap-3 py-2.5 transition-opacity duration-200 first:pt-0 last:pb-0 ${
+                        !scheduledToday ? "opacity-60" : taken ? "opacity-70" : ""
                       }`}
                     >
                       <span
@@ -590,7 +569,16 @@ export default function HomePage() {
                           aria-label={`${med.name}: ${taken ? "marcar como não tomado" : "marcar como tomado"}`}
                           aria-pressed={taken}
                         >
-                          {taken && <Check size={12} strokeWidth={3} className="text-white" />}
+                          {taken && (
+                            <motion.span
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                              className="flex"
+                            >
+                              <Check size={12} strokeWidth={3} className="text-white" />
+                            </motion.span>
+                          )}
                         </button>
                       ) : (
                         <span className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
@@ -598,7 +586,7 @@ export default function HomePage() {
                       <div className="min-w-0 flex-1">
                         <p
                           className={`truncate text-sm font-medium ${
-                            taken ? "text-text-muted line-through" : "text-text-primary"
+                            taken ? "text-text-muted line-through decoration-text-muted/50" : "text-text-primary"
                           }`}
                         >
                           {med.name}
@@ -617,7 +605,7 @@ export default function HomePage() {
                         {med.time}
                       </span>
                       <button
-                        onClick={() => handleDeleteMed(med.id)}
+                        onClick={() => handleDeleteMed(med)}
                         className="shrink-0 text-text-muted transition-opacity hover:text-danger md:opacity-0 md:group-hover:opacity-100"
                         aria-label={`Excluir ${med.name}`}
                       >
@@ -644,9 +632,9 @@ export default function HomePage() {
               </AnimatePresence>
             </>
           )}
-        </Card>
+        </MotionCard>
 
-        <Card className="animate-fade-in-up md:col-span-2" style={{ animationDelay: "190ms" }}>
+        <MotionCard variants={fadeUp} className="md:col-span-2">
           <div className="mb-3 flex items-center gap-1.5 text-text-secondary">
             <BellRing size={16} strokeWidth={1.5} />
             <span className="meta-label">
@@ -654,7 +642,15 @@ export default function HomePage() {
             </span>
           </div>
           {remindersLoading ? (
-            <p className="py-6 text-center text-sm text-text-muted">Carregando...</p>
+            <ul className="animate-pulse space-y-3 py-1" aria-busy="true" aria-label="Carregando lembretes">
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="flex items-center gap-3">
+                  <div className="h-4 w-10 rounded-md bg-border/60 dark:bg-border" />
+                  <div className="h-4 flex-1 rounded-md bg-border/60 dark:bg-border" />
+                  <div className="h-5 w-16 rounded-full bg-border/60 dark:bg-border" />
+                </li>
+              ))}
+            </ul>
           ) : dayItems.length === 0 ? (
             <EmptyState
               icon={CalendarOff}
@@ -684,73 +680,18 @@ export default function HomePage() {
               })}
             </ul>
           )}
-        </Card>
+        </MotionCard>
 
-        <Card className="animate-fade-in-up md:col-span-2 lg:col-span-4" style={{ animationDelay: "220ms" }}>
-          <div className="mb-4 flex items-center gap-1.5 text-text-secondary">
-            <Activity size={16} strokeWidth={1.5} />
-            <span className="meta-label">Visão gerencial do VidaPlus</span>
-          </div>
-          {!gerencialUnlocked ? (
-            <form onSubmit={handleUnlockGerencial} className="flex flex-wrap items-center gap-3">
-              <span className="flex items-center gap-2 text-sm text-text-muted">
-                <Lock size={15} strokeWidth={1.5} /> Acesso restrito à equipe do projeto.
-              </span>
-              <div className="flex min-w-[220px] flex-1 items-center gap-2">
-                <input
-                  type="password"
-                  value={gerencialCode}
-                  onChange={(e) => setGerencialCode(e.target.value)}
-                  placeholder="Código de acesso"
-                  className="flex-1 rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2"
-                />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
-                >
-                  Ver
-                </button>
-              </div>
-              {gerencialError && <p className="w-full text-xs font-medium text-danger">{gerencialError}</p>}
-            </form>
-          ) : gerencial === null ? (
-            <p className="text-sm text-text-muted">Carregando indicadores...</p>
-          ) : gerencial === false ? (
-            <p className="text-sm text-text-muted">Não foi possível carregar os indicadores agora.</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <IndicadorGerencial
-                icon={Gauge}
-                label="NPS"
-                valor={gerencial.avaliacoes.nps.score ?? "—"}
-                cor={PURPLE}
-              />
-              <IndicadorGerencial
-                icon={BarChart3}
-                label={`SUS${gerencial.avaliacoes.sus.nota ? ` · nota ${gerencial.avaliacoes.sus.nota}` : ""}`}
-                valor={gerencial.avaliacoes.sus.mediaScore ?? "—"}
-                cor={gerencial.avaliacoes.sus.corNota || AMBER}
-              />
-              <IndicadorGerencial
-                icon={Smile}
-                label="Satisfação"
-                valor={
-                  gerencial.avaliacoes.satisfacao.mediaGeral !== null
-                    ? `${gerencial.avaliacoes.satisfacao.mediaGeral}/5`
-                    : "—"
-                }
-                cor={BLUE}
-              />
-              <IndicadorGerencial
-                icon={CalendarOff}
-                label="Consultas registradas"
-                valor={gerencial.consultas.total}
-                cor="var(--accent)"
-              />
-            </div>
-          )}
-        </Card>
       </div>
+
+      <ConfirmDialog
+        open={confirmMedDeleteOpen}
+        onClose={() => setConfirmMedDeleteOpen(false)}
+        onConfirm={handleConfirmDeleteMed}
+        title="Excluir medicamento"
+        description={`Tem certeza que deseja excluir o medicamento '${medToDelete?.name ?? ""}'? Esta ação não pode ser desfeita.`}
+        confirmLabel="Excluir"
+      />
 
       <Modal open={medModalOpen} onClose={closeMedModal} title="Novo medicamento">
         <form onSubmit={handleAddMed} className="space-y-3">
@@ -838,24 +779,12 @@ export default function HomePage() {
           )}
           <button
             type="submit"
-            className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+            className="btn-gradient w-full rounded-lg py-2.5 text-sm font-semibold text-white"
           >
             Adicionar
           </button>
         </form>
       </Modal>
-    </div>
-  );
-}
-
-function IndicadorGerencial({ icon: Icon, label, valor, cor }) {
-  return (
-    <div className="rounded-xl bg-bg-primary p-3 text-center dark:bg-[#1a1a1a]">
-      <Icon size={14} strokeWidth={1.5} className="mx-auto mb-1.5" style={{ color: cor }} />
-      <p className="text-xl font-bold tracking-tight" style={{ color: cor }}>
-        {valor}
-      </p>
-      <p className="mt-0.5 truncate text-[10px] text-text-muted">{label}</p>
-    </div>
+    </motion.div>
   );
 }

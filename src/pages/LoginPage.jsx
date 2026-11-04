@@ -78,7 +78,7 @@ export default function LoginPage() {
   }
 
   const inputClass =
-    "w-full rounded-lg border border-border bg-bg-secondary py-3 pl-10 pr-3 text-sm text-text-primary outline-none ring-accent/40 placeholder:text-text-muted focus:border-accent focus:ring-2";
+    "w-full rounded-lg border border-border bg-bg-secondary py-3 pl-10 pr-3 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
 
   return (
     <div className="min-h-screen bg-bg-primary lg:flex">
@@ -96,6 +96,20 @@ export default function LoginPage() {
           </pattern>
           <rect width="100%" height="100%" fill="url(#dots)" />
         </svg>
+        <div
+          className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 animate-drift rounded-full bg-white/10 blur-2xl"
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 animate-drift rounded-full bg-white/[0.08] blur-3xl"
+          style={{ animationDuration: "24s", animationDelay: "-6s" }}
+          aria-hidden="true"
+        />
+        <div
+          className="pointer-events-none absolute right-1/4 top-1/3 h-40 w-40 animate-drift rounded-full bg-white/10 blur-xl"
+          style={{ animationDuration: "15s", animationDelay: "-3s" }}
+          aria-hidden="true"
+        />
 
         <div className="relative flex items-center gap-2.5">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white">
@@ -112,23 +126,27 @@ export default function LoginPage() {
             Humor, hidratação, medicamentos, exames e agenda em um só lugar — simples de usar, no
             seu ritmo.
           </p>
-          <ul className="mt-8 space-y-4">
-            <FeatureItem icon={Smile} text="Acompanhe seu humor todos os dias" />
-            <FeatureItem icon={Pill} text="Nunca mais esqueça um medicamento" />
-            <FeatureItem icon={CalendarDays} text="Organize consultas e exames num só calendário" />
+          <ul className="mt-8 space-y-4 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
+            <FeatureItem icon={Smile} text="Acompanhe seu humor todos os dias" delay={0} />
+            <FeatureItem icon={Pill} text="Nunca mais esqueça um medicamento" delay={0.4} />
+            <FeatureItem icon={CalendarDays} text="Organize consultas e exames num só calendário" delay={0.8} />
           </ul>
         </div>
 
         <div />
       </div>
 
-      <div className="flex flex-1 items-center justify-center px-4 pb-10 pt-14 lg:px-12 lg:py-10">
-        <div className="w-full max-w-sm">
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-linear-to-b from-bg-primary to-accent/5 px-4 pb-10 pt-14 lg:bg-none lg:px-12 lg:py-10">
+        <div
+          className="pointer-events-none absolute -right-16 top-1/4 h-72 w-72 rounded-full bg-accent/15 blur-3xl"
+          aria-hidden="true"
+        />
+        <div className="relative w-full max-w-sm">
           <div className="mb-8 flex justify-center lg:hidden">
             <Logo size="lg" withSlogan />
           </div>
 
-          <div className="rounded-xl border border-transparent bg-bg-card p-6 shadow-lg dark:border-border dark:shadow-none">
+          <div className="animate-fade-in-up glass-card rounded-2xl border border-white/60 p-6 shadow-lg dark:border-border dark:shadow-none">
             <div className="relative mb-5 flex rounded-lg bg-bg-secondary p-1">
               {["login", "cadastro"].map((m) => (
                 <button
@@ -225,7 +243,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={enviando}
-                className="h-12 w-full rounded-lg bg-accent text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                className="btn-gradient h-12 w-full rounded-lg text-[15px] font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {enviando ? "Aguarde..." : mode === "cadastro" ? "Criar conta" : "Entrar"}
               </button>
@@ -237,10 +255,13 @@ export default function LoginPage() {
   );
 }
 
-function FeatureItem({ icon: Icon, text }) {
+function FeatureItem({ icon: Icon, text, delay = 0 }) {
   return (
     <li className="group flex items-center gap-3 text-sm text-white/95 transition-transform duration-200 hover:translate-x-1">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15">
+      <span
+        className="flex h-8 w-8 shrink-0 animate-float items-center justify-center rounded-lg bg-white/15"
+        style={{ animationDelay: `${delay}s` }}
+      >
         <Icon size={16} strokeWidth={1.5} />
       </span>
       {text}

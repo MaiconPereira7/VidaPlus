@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toISODate, daysInMonth, firstWeekdayOfMonth, todayISO } from "../lib/dates";
 
@@ -81,7 +82,13 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
           <ChevronRight size={18} strokeWidth={1.5} />
         </button>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center md:gap-1.5">
+      <motion.div
+        key={`${cursor.year}-${cursor.month}`}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+        className="grid grid-cols-7 gap-1 text-center md:gap-1.5"
+      >
         {WEEKDAYS.map((w, i) => (
           <span key={i} className="pb-1 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
             {w}
@@ -97,12 +104,14 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
             <button
               key={iso}
               onClick={() => onSelectDate(iso)}
-              className={`relative flex h-9 items-center justify-center rounded-xl text-sm font-medium transition-colors md:h-12 ${
-                isSelected
-                  ? "bg-accent text-white"
+              className={`relative flex h-9 items-center justify-center rounded-xl text-sm font-medium transition-[background-color,color,box-shadow] duration-150 md:h-12 ${
+                isSelected && isToday
+                  ? "bg-accent text-white ring-2 ring-accent ring-offset-2 ring-offset-bg-card"
+                  : isSelected
+                  ? "bg-accent/10 font-semibold text-accent ring-2 ring-accent ring-offset-2 ring-offset-bg-card"
                   : isToday
-                  ? "text-accent ring-2 ring-accent/30"
-                  : "text-text-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                  ? "text-accent ring-2 ring-accent/30 hover:bg-accent/10"
+                  : "text-text-primary hover:bg-accent/10 hover:text-accent"
               }`}
               style={
                 colors.length > 0 && !isSelected
@@ -117,7 +126,7 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
                     <span
                       key={idx}
                       className="h-1 w-1 rounded-full"
-                      style={{ backgroundColor: isSelected ? "#fff" : c }}
+                      style={{ backgroundColor: isSelected && isToday ? "#fff" : c }}
                     />
                   ))}
                 </span>
@@ -125,7 +134,7 @@ export default function MiniCalendar({ selectedDate, onSelectDate, colorsByDate 
             </button>
           );
         })}
-      </div>
+      </motion.div>
     </div>
   );
 }

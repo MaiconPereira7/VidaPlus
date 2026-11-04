@@ -42,7 +42,7 @@ import {
 } from "../lib/dates";
 
 const inputClass =
-  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 focus:ring-2";
+  "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
 
 function average(values) {
   if (!values.length) return null;
@@ -195,47 +195,62 @@ export default function SaudePage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <Card className="relative animate-fade-in-up overflow-hidden" style={{ animationDelay: "40ms" }}>
+        <Card
+          className="relative animate-fade-in-up overflow-hidden bg-linear-to-br from-info/[0.06] to-transparent dark:from-info/10"
+          style={{ animationDelay: "40ms" }}
+        >
           <Droplets
             size={48}
             strokeWidth={1}
             className="pointer-events-none absolute -right-1 -top-1 text-[#2563eb] opacity-[0.07]"
           />
-          <div className="mb-2 flex items-center gap-1.5 text-text-secondary">
-            <Droplets size={16} strokeWidth={1.5} />
+          <div className="mb-3 flex items-center gap-2.5 text-text-secondary">
+            <span className="flex shrink-0 items-center justify-center rounded-xl bg-info/10 p-2.5 text-info dark:bg-info/20">
+              <Droplets size={16} strokeWidth={1.5} />
+            </span>
             <p className="meta-label">Hidratação média (7 dias)</p>
           </div>
-          <p className="text-[28px] font-bold tracking-tight text-text-primary">{avgWater} copos</p>
+          <p className="text-[28px] font-bold tracking-tight tabular-nums text-text-primary">{avgWater} copos</p>
         </Card>
-        <Card className="relative animate-fade-in-up overflow-hidden" style={{ animationDelay: "70ms" }}>
+        <Card
+          className="relative animate-fade-in-up overflow-hidden bg-linear-to-br from-purple/[0.06] to-transparent dark:from-purple/10"
+          style={{ animationDelay: "70ms" }}
+        >
           <Smile
             size={48}
             strokeWidth={1}
             className="pointer-events-none absolute -right-1 -top-1 text-[#7c3aed] opacity-[0.07]"
           />
-          <div className="mb-2 flex items-center gap-1.5 text-text-secondary">
-            <Smile size={16} strokeWidth={1.5} />
+          <div className="mb-3 flex items-center gap-2.5 text-text-secondary">
+            <span className="flex shrink-0 items-center justify-center rounded-xl bg-purple/10 p-2.5 text-purple dark:bg-purple/20">
+              <Smile size={16} strokeWidth={1.5} />
+            </span>
             <p className="meta-label">Humor mais frequente</p>
           </div>
           {mostFrequentMood ? (
-            <p className="text-[28px] font-bold tracking-tight text-text-primary">
+            <p className="text-[28px] font-bold tracking-tight tabular-nums text-text-primary">
               {mostFrequentMood.emoji} {mostFrequentMood.label}
             </p>
           ) : (
             <p className="text-sm text-text-muted">Sem dados</p>
           )}
         </Card>
-        <Card className="relative animate-fade-in-up overflow-hidden" style={{ animationDelay: "100ms" }}>
+        <Card
+          className="relative animate-fade-in-up overflow-hidden bg-linear-to-br from-accent/[0.06] to-transparent dark:from-accent/[0.07]"
+          style={{ animationDelay: "100ms" }}
+        >
           <Pill
             size={48}
             strokeWidth={1}
             className="pointer-events-none absolute -right-1 -top-1 text-accent opacity-[0.07]"
           />
-          <div className="mb-2 flex items-center gap-1.5 text-text-secondary">
-            <Pill size={16} strokeWidth={1.5} />
+          <div className="mb-3 flex items-center gap-2.5 text-text-secondary">
+            <span className="flex shrink-0 items-center justify-center rounded-xl bg-accent/10 p-2.5 text-accent dark:bg-accent/20">
+              <Pill size={16} strokeWidth={1.5} />
+            </span>
             <p className="meta-label">Dias com medicação completa</p>
           </div>
-          <p className="text-[28px] font-bold tracking-tight text-accent">{completeMedDays} / 7</p>
+          <p className="text-[28px] font-bold tracking-tight tabular-nums text-accent">{completeMedDays} / 7</p>
         </Card>
       </div>
 
@@ -544,7 +559,7 @@ export default function SaudePage() {
           )}
           <button
             type="submit"
-            className="w-full rounded-lg bg-accent py-2.5 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
+            className="btn-gradient w-full rounded-lg py-2.5 text-sm font-semibold text-white"
           >
             Adicionar exame
           </button>
