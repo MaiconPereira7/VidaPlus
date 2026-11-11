@@ -1,0 +1,571 @@
+<title>Wireframe VidaPlus</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f5f5f5;
+  --fg: #1a1a1a;
+  --fg2: #666;
+  --border: #ccc;
+  --wire-bg: #fff;
+  --wire-fill: #e8e8e8;
+  --accent: #059669;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111; --fg: #eee; --fg2: #999; --border: #333;
+    --wire-bg: #1a1a1a; --wire-fill: #2a2a2a; --accent: #34d399;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111; --fg: #eee; --fg2: #999; --border: #333;
+  --wire-bg: #1a1a1a; --wire-fill: #2a2a2a; --accent: #34d399;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 0 80px;
+}
+h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: -0.02em;
+}
+.subtitle {
+  color: var(--fg2);
+  font-size: 14px;
+  margin-bottom: 32px;
+}
+.subtitle strong { color: var(--accent); }
+.wire-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 8px;
+  margin-top: 32px;
+}
+.wire-label:first-of-type { margin-top: 0; }
+.wire-box {
+  background: var(--wire-bg);
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+}
+.wire-box .tag {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.wire-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.wire-block {
+  background: var(--wire-fill);
+  border-radius: 6px;
+  height: 14px;
+}
+.wire-block.sm { width: 60px; }
+.wire-block.md { width: 120px; }
+.wire-block.lg { width: 200px; }
+.wire-block.xl { width: 280px; }
+.wire-block.full { width: 100%; }
+.wire-block.h2 { height: 28px; border-radius: 8px; }
+.wire-block.h3 { height: 20px; }
+.wire-block.btn { height: 40px; border-radius: 10px; background: var(--accent); opacity: 0.3; width: 160px; }
+.wire-block.btn-o { height: 40px; border-radius: 10px; border: 2px solid var(--border); background: transparent; width: 160px; }
+.wire-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  border: 4px solid var(--wire-fill);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.wire-circle-inner {
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  border: 4px solid var(--accent);
+  opacity: 0.4;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  transform: rotate(-45deg);
+}
+.wire-card {
+  background: var(--wire-fill);
+  border-radius: 10px;
+  padding: 16px;
+  flex: 1;
+  min-width: 0;
+}
+.wire-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--wire-fill);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.wire-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.wire-feature {
+  background: var(--wire-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+}
+.wire-step {
+  text-align: center;
+  flex: 1;
+}
+.wire-step-num {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--accent);
+  opacity: 0.3;
+  margin: 0 auto 10px;
+}
+.wire-testimonial {
+  background: var(--wire-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+}
+.wire-stars {
+  display: flex; gap: 3px; margin-bottom: 8px;
+}
+.wire-star {
+  width: 12px; height: 12px;
+  background: #f59e0b;
+  border-radius: 2px;
+  opacity: 0.5;
+}
+.wire-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--wire-fill);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.wire-cta-box {
+  background: var(--accent);
+  opacity: 0.15;
+  border-radius: 20px;
+  padding: 48px 24px;
+  text-align: center;
+}
+.note {
+  font-size: 12px;
+  color: var(--fg2);
+  font-style: italic;
+  margin-top: 6px;
+}
+.spacer { height: 8px; }
+.spacer-lg { height: 16px; }
+
+/* Phone frame for hero mockup */
+.phone-frame {
+  width: 200px;
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 12px;
+  margin: 0 auto;
+  background: var(--wire-bg);
+}
+.phone-screen {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.phone-bar {
+  display: flex; justify-content: space-between;
+}
+.phone-rings {
+  display: flex; gap: 8px; justify-content: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.phone-ring {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 3px solid var(--wire-fill);
+}
+.phone-cards { display: flex; flex-direction: column; gap: 6px; }
+.phone-card {
+  display: flex; gap: 8px; align-items: center;
+  padding: 8px;
+  background: var(--wire-fill);
+  border-radius: 8px;
+}
+.phone-icon { width: 24px; height: 24px; border-radius: 6px; background: var(--border); flex-shrink: 0; }
+.phone-nav {
+  display: flex; justify-content: space-around;
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
+}
+.phone-tab { width: 16px; height: 16px; border-radius: 4px; background: var(--wire-fill); }
+.phone-tab.active { background: var(--accent); opacity: 0.4; }
+.annotation {
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.annotation::before {
+  content: '→';
+  font-size: 14px;
+}
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  font-size: 12px;
+  color: var(--fg2);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+</style>
+
+<div class="page">
+  <h1>Wireframe — Landing Page VidaPlus</h1>
+  <p class="subtitle">Projeto Integrado · FATEC ADS · Turma <strong>AMS-168-20260</strong></p>
+
+  <div class="meta">
+    <span>Aluno: Maicon Pereira Veloso</span>
+    <span>IHC — Profa. Patricia Gallo de França</span>
+    <span>Novembro 2026</span>
+  </div>
+
+  <!-- NAV -->
+  <div class="wire-label">Seção 1 — Navegação</div>
+  <div class="wire-box">
+    <span class="tag">Nav Bar</span>
+    <div class="wire-row" style="justify-content:space-between">
+      <div class="wire-row">
+        <div class="wire-block sm" style="height:20px"></div>
+        <div class="wire-block md" style="height:20px;background:var(--accent);opacity:0.3"></div>
+      </div>
+      <div class="wire-row">
+        <div class="wire-block sm"></div>
+        <div class="wire-block sm"></div>
+        <div class="wire-block sm"></div>
+        <div class="wire-block sm" style="background:var(--accent);opacity:0.3;border-radius:8px;height:28px;width:80px"></div>
+      </div>
+    </div>
+    <div class="note">Logo "VidaPlus" à esquerda · Links: Funcionalidades, Como Funciona, Depoimentos · CTA "Acessar App"</div>
+  </div>
+
+  <!-- HERO -->
+  <div class="wire-label">Seção 2 — Hero</div>
+  <div class="wire-box">
+    <span class="tag">Hero Section</span>
+    <div style="text-align:center">
+      <div class="wire-block sm" style="margin:0 auto 12px;background:var(--accent);opacity:0.2;border-radius:20px;height:24px;width:200px"></div>
+      <div class="wire-block h2" style="margin:0 auto 8px;max-width:400px;width:100%"></div>
+      <div class="wire-block h2" style="margin:0 auto 16px;max-width:300px;width:100%"></div>
+      <div class="wire-block full" style="margin:0 auto 8px;max-width:380px;height:10px"></div>
+      <div class="wire-block full" style="margin:0 auto 24px;max-width:320px;height:10px"></div>
+
+      <div class="wire-row" style="justify-content:center;margin-bottom:32px">
+        <div class="wire-block btn"></div>
+        <div class="wire-block btn-o"></div>
+      </div>
+
+      <!-- Phone mockup wireframe -->
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-bar">
+            <div class="wire-block" style="width:30px;height:8px"></div>
+            <div class="wire-block" style="width:30px;height:8px"></div>
+          </div>
+          <div>
+            <div class="wire-block" style="width:60px;height:8px;margin-bottom:4px"></div>
+            <div class="wire-block" style="width:100px;height:14px"></div>
+          </div>
+          <div class="phone-rings">
+            <div class="phone-ring"></div>
+            <div class="phone-ring"></div>
+            <div class="phone-ring"></div>
+          </div>
+          <div class="phone-cards">
+            <div class="phone-card">
+              <div class="phone-icon"></div>
+              <div>
+                <div class="wire-block" style="width:60px;height:8px;margin-bottom:4px"></div>
+                <div class="wire-block" style="width:90px;height:6px"></div>
+              </div>
+            </div>
+            <div class="phone-card">
+              <div class="phone-icon"></div>
+              <div>
+                <div class="wire-block" style="width:70px;height:8px;margin-bottom:4px"></div>
+                <div class="wire-block" style="width:80px;height:6px"></div>
+              </div>
+            </div>
+          </div>
+          <div class="phone-nav">
+            <div class="phone-tab active"></div>
+            <div class="phone-tab"></div>
+            <div class="phone-tab"></div>
+            <div class="phone-tab"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note">Badge "Companheiro de saúde digital" · Título com destaque em verde · Subtítulo · 2 botões (primário + outline) · Mockup do app com anéis de progresso</div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="wire-label">Seção 3 — Funcionalidades</div>
+  <div class="wire-box">
+    <span class="tag">Features Grid</span>
+    <div style="margin-bottom:12px">
+      <div class="wire-block sm" style="height:10px;background:var(--accent);opacity:0.3;margin-bottom:8px"></div>
+      <div class="wire-block lg h3"></div>
+      <div class="spacer"></div>
+      <div class="wire-block xl" style="height:10px"></div>
+    </div>
+    <div class="wire-grid">
+      <div class="wire-feature">
+        <div class="wire-icon" style="margin-bottom:10px"></div>
+        <div class="wire-block md h3" style="margin-bottom:6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:80%"></div>
+        <div class="annotation" style="margin-top:8px">Hidratação</div>
+      </div>
+      <div class="wire-feature">
+        <div class="wire-icon" style="margin-bottom:10px"></div>
+        <div class="wire-block md h3" style="margin-bottom:6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:70%"></div>
+        <div class="annotation" style="margin-top:8px">Humor</div>
+      </div>
+      <div class="wire-feature">
+        <div class="wire-icon" style="margin-bottom:10px"></div>
+        <div class="wire-block md h3" style="margin-bottom:6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:75%"></div>
+        <div class="annotation" style="margin-top:8px">Medicamentos</div>
+      </div>
+      <div class="wire-feature">
+        <div class="wire-icon" style="margin-bottom:10px"></div>
+        <div class="wire-block md h3" style="margin-bottom:6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:85%"></div>
+        <div class="annotation" style="margin-top:8px">Consultas</div>
+      </div>
+      <div class="wire-feature">
+        <div class="wire-icon" style="margin-bottom:10px"></div>
+        <div class="wire-block md h3" style="margin-bottom:6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:65%"></div>
+        <div class="annotation" style="margin-top:8px">Atividade Física</div>
+      </div>
+      <div class="wire-feature">
+        <div class="wire-icon" style="margin-bottom:10px"></div>
+        <div class="wire-block md h3" style="margin-bottom:6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:90%"></div>
+        <div class="annotation" style="margin-top:8px">Modo Escuro</div>
+      </div>
+    </div>
+    <div class="note">Label "FUNCIONALIDADES" · Título · Descrição · Grid 3×2 com ícone, título e descrição por card</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="wire-label">Seção 4 — Números</div>
+  <div class="wire-box">
+    <span class="tag">Stats Bar</span>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;text-align:center">
+      <div>
+        <div class="wire-block h2" style="margin:0 auto 6px;width:50px;background:var(--accent);opacity:0.25"></div>
+        <div class="wire-block" style="margin:0 auto;width:80px;height:8px"></div>
+      </div>
+      <div>
+        <div class="wire-block h2" style="margin:0 auto 6px;width:60px;background:var(--accent);opacity:0.25"></div>
+        <div class="wire-block" style="margin:0 auto;width:60px;height:8px"></div>
+      </div>
+      <div>
+        <div class="wire-block h2" style="margin:0 auto 6px;width:30px;background:var(--accent);opacity:0.25"></div>
+        <div class="wire-block" style="margin:0 auto;width:100px;height:8px"></div>
+      </div>
+      <div>
+        <div class="wire-block h2" style="margin:0 auto 6px;width:50px;background:var(--accent);opacity:0.25"></div>
+        <div class="wire-block" style="margin:0 auto;width:90px;height:8px"></div>
+      </div>
+    </div>
+    <div class="note">4 estatísticas: 6 Módulos · 100% Gratuito · 2 Temas · PWA Offline</div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="wire-label">Seção 5 — Como Funciona</div>
+  <div class="wire-box">
+    <span class="tag">Steps</span>
+    <div style="margin-bottom:16px">
+      <div class="wire-block sm" style="height:10px;background:var(--accent);opacity:0.3;margin-bottom:8px"></div>
+      <div class="wire-block lg h3"></div>
+    </div>
+    <div style="display:flex;gap:20px">
+      <div class="wire-step">
+        <div class="wire-step-num"></div>
+        <div class="wire-block md h3" style="margin:0 auto 6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:80%;margin:0 auto"></div>
+        <div class="annotation" style="justify-content:center;margin-top:8px">Criar Conta</div>
+      </div>
+      <div class="wire-step">
+        <div class="wire-step-num"></div>
+        <div class="wire-block md h3" style="margin:0 auto 6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:85%;margin:0 auto"></div>
+        <div class="annotation" style="justify-content:center;margin-top:8px">Configurar Metas</div>
+      </div>
+      <div class="wire-step">
+        <div class="wire-step-num"></div>
+        <div class="wire-block md h3" style="margin:0 auto 6px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;width:75%;margin:0 auto"></div>
+        <div class="annotation" style="justify-content:center;margin-top:8px">Acompanhar Progresso</div>
+      </div>
+    </div>
+    <div class="note">3 passos numerados (1, 2, 3) com título e descrição cada</div>
+  </div>
+
+  <!-- TESTIMONIALS -->
+  <div class="wire-label">Seção 6 — Depoimentos</div>
+  <div class="wire-box">
+    <span class="tag">Testimonials</span>
+    <div style="margin-bottom:16px">
+      <div class="wire-block sm" style="height:10px;background:var(--accent);opacity:0.3;margin-bottom:8px"></div>
+      <div class="wire-block lg h3"></div>
+    </div>
+    <div class="wire-grid">
+      <div class="wire-testimonial">
+        <div class="wire-stars"><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px;width:90%"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:12px;width:60%"></div>
+        <div class="wire-row">
+          <div class="wire-avatar"></div>
+          <div>
+            <div class="wire-block sm" style="height:10px;margin-bottom:3px"></div>
+            <div class="wire-block" style="width:80px;height:6px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wire-testimonial">
+        <div class="wire-stars"><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px;width:85%"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:12px;width:70%"></div>
+        <div class="wire-row">
+          <div class="wire-avatar"></div>
+          <div>
+            <div class="wire-block sm" style="height:10px;margin-bottom:3px"></div>
+            <div class="wire-block" style="width:70px;height:6px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="wire-testimonial">
+        <div class="wire-stars"><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div><div class="wire-star"></div></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:4px;width:80%"></div>
+        <div class="wire-block full" style="height:8px;margin-bottom:12px;width:55%"></div>
+        <div class="wire-row">
+          <div class="wire-avatar"></div>
+          <div>
+            <div class="wire-block sm" style="height:10px;margin-bottom:3px"></div>
+            <div class="wire-block" style="width:90px;height:6px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note">3 cards com ★★★★★, texto do depoimento, avatar + nome + cargo</div>
+  </div>
+
+  <!-- CTA -->
+  <div class="wire-label">Seção 7 — CTA Final</div>
+  <div class="wire-box">
+    <span class="tag">Call to Action</span>
+    <div class="wire-cta-box">
+      <div class="wire-block lg h2" style="margin:0 auto 8px;background:var(--wire-bg)"></div>
+      <div class="wire-block xl" style="margin:0 auto 20px;height:10px;background:var(--wire-bg)"></div>
+      <div class="wire-block btn" style="margin:0 auto;background:var(--wire-bg);opacity:1"></div>
+    </div>
+    <div class="note">Box verde com título, subtítulo e botão branco "Acessar o VidaPlus"</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="wire-label">Seção 8 — Footer</div>
+  <div class="wire-box">
+    <span class="tag">Footer</span>
+    <div class="wire-row" style="justify-content:space-between">
+      <div>
+        <div class="wire-block md" style="height:14px;margin-bottom:6px"></div>
+        <div class="wire-block xl" style="height:8px"></div>
+      </div>
+      <div class="wire-row">
+        <div class="wire-block sm" style="height:10px"></div>
+        <div class="wire-block sm" style="height:10px"></div>
+        <div class="wire-block" style="width:80px;height:10px"></div>
+      </div>
+    </div>
+    <div class="note">Logo + © 2026 VidaPlus · Links: GitHub, App, Design System</div>
+  </div>
+
+  <!-- Legend -->
+  <div style="margin-top:40px;padding:20px;border:1px solid var(--border);border-radius:12px;background:var(--wire-bg)">
+    <div style="font-size:13px;font-weight:700;margin-bottom:12px">Legenda do Wireframe</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;font-size:12px;color:var(--fg2)">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:10px;background:var(--wire-fill);border-radius:3px"></div>
+        Bloco de texto / conteúdo
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:10px;background:var(--accent);opacity:0.3;border-radius:3px"></div>
+        Elemento de destaque (accent)
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:24px;border:2px dashed var(--border);border-radius:4px"></div>
+        Container / seção
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:24px;height:24px;border:2px solid var(--border);border-radius:50%"></div>
+        Avatar / ícone circular
+      </div>
+    </div>
+  </div>
+</div>

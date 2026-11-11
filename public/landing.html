@@ -1,0 +1,842 @@
+<title>VidaPlus</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+
+<style>
+:root {
+  --bg: #fafafa;
+  --bg-card: #ffffff;
+  --fg: #0a0a0a;
+  --fg-secondary: #525252;
+  --fg-muted: #a3a3a3;
+  --border: #e5e5e5;
+  --accent: #059669;
+  --accent-light: #ecfdf5;
+  --accent-hover: #047857;
+  --accent-glow: rgba(5,150,105,0.12);
+  --info: #2563eb;
+  --purple: #7c3aed;
+  --amber: #d97706;
+  --danger: #dc2626;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0a0a0a;
+    --bg-card: #171717;
+    --fg: #fafafa;
+    --fg-secondary: #a3a3a3;
+    --fg-muted: #525252;
+    --border: #262626;
+    --accent: #34d399;
+    --accent-light: #064e3b;
+    --accent-hover: #10b981;
+    --accent-glow: rgba(52,211,153,0.08);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-card: #171717;
+  --fg: #fafafa;
+  --fg-secondary: #a3a3a3;
+  --fg-muted: #525252;
+  --border: #262626;
+  --accent: #34d399;
+  --accent-light: #064e3b;
+  --accent-hover: #10b981;
+  --accent-glow: rgba(52,211,153,0.08);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  overflow-x: hidden;
+}
+
+/* ── Nav ── */
+.nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 50;
+  height: 60px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.nav-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 8px;
+}
+.logo {
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo span:first-child { font-weight: 300; }
+.logo span:nth-child(2) { font-weight: 700; color: var(--accent); }
+.logo-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%,100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 0 5px var(--accent-glow); }
+}
+.nav-links {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.nav-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg-secondary);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.nav-links a:hover {
+  color: var(--accent);
+  background: var(--accent-light);
+}
+.nav-cta {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff !important;
+  background: var(--accent) !important;
+  padding: 8px 18px !important;
+  border-radius: 10px !important;
+}
+.nav-cta:hover { background: var(--accent-hover) !important; }
+
+@media (max-width: 640px) {
+  .nav-links a:not(.nav-cta) { display: none; }
+}
+
+/* ── Hero ── */
+.hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 8px 60px;
+  text-align: center;
+  position: relative;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 6px 16px;
+  border-radius: 999px;
+  margin-bottom: 28px;
+  letter-spacing: 0.02em;
+}
+.hero h1 {
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  text-wrap: balance;
+}
+.hero h1 .accent { color: var(--accent); }
+.hero-sub {
+  font-size: clamp(16px, 2.5vw, 19px);
+  color: var(--fg-secondary);
+  max-width: 560px;
+  margin: 0 auto 36px;
+  line-height: 1.6;
+}
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 56px;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-lg {
+  padding: 14px 32px;
+  font-size: 15px;
+  border-radius: 12px;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-outline {
+  background: transparent;
+  color: var(--fg-secondary);
+  border: 1px solid var(--border);
+}
+.btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-light);
+}
+
+/* Hero mockup */
+.hero-mockup {
+  max-width: 380px;
+  margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+}
+.mockup-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg-secondary);
+}
+.mockup-header {
+  padding: 0 20px 16px;
+}
+.mockup-greeting {
+  font-size: 14px;
+  color: var(--fg-muted);
+  margin-bottom: 2px;
+}
+.mockup-name {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.mockup-rings {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.ring-item { text-align: center; }
+.ring-item .label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--fg-muted);
+  margin-top: 6px;
+}
+.ring-item .value {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.mockup-cards {
+  padding: 16px 20px;
+  display: grid;
+  gap: 10px;
+}
+.mockup-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+.mockup-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.mockup-card-text .mc-title {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 1px;
+}
+.mockup-card-text .mc-desc {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+.mockup-bottom {
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 14px;
+  border-top: 1px solid var(--border);
+}
+.mockup-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--fg-muted);
+}
+.mockup-tab.active { color: var(--accent); }
+.mockup-tab svg { width: 18px; height: 18px; }
+
+/* ── Features ── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 8px;
+}
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: clamp(26px, 4vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  text-wrap: balance;
+}
+.section-desc {
+  font-size: 16px;
+  color: var(--fg-secondary);
+  max-width: 540px;
+  line-height: 1.7;
+  margin-bottom: 48px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  transition: all 0.2s;
+}
+.feature-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  font-size: 22px;
+}
+.feature-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.feature-card p {
+  font-size: 14px;
+  color: var(--fg-secondary);
+  line-height: 1.6;
+}
+
+/* ── How it works ── */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+  counter-reset: step;
+}
+.step-item {
+  text-align: center;
+  position: relative;
+}
+.step-num {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.step-item h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.step-item p {
+  font-size: 14px;
+  color: var(--fg-secondary);
+  line-height: 1.6;
+}
+
+/* ── Stats ── */
+.stats-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 24px;
+  padding: 40px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+.stat-item .stat-num {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.stat-item .stat-label {
+  font-size: 13px;
+  color: var(--fg-muted);
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* ── Testimonials ── */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+.testimonial-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+}
+.testimonial-stars {
+  color: #f59e0b;
+  font-size: 14px;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+.testimonial-text {
+  font-size: 14px;
+  color: var(--fg-secondary);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  font-style: italic;
+}
+.testimonial-author {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.testimonial-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--info));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.testimonial-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.testimonial-role {
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+
+/* ── CTA ── */
+.cta-section {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 8px 40px;
+}
+.cta-box {
+  background: var(--accent);
+  border-radius: 24px;
+  padding: 56px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.12) 0%, transparent 60%);
+}
+.cta-box h2 {
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+  position: relative;
+  text-wrap: balance;
+}
+.cta-box p {
+  font-size: 16px;
+  color: rgba(255,255,255,0.85);
+  margin-bottom: 28px;
+  position: relative;
+}
+.cta-box .btn {
+  background: #fff;
+  color: var(--accent);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px 36px;
+  border-radius: 12px;
+  position: relative;
+}
+.cta-box .btn:hover { opacity: 0.92; }
+
+/* ── Footer ── */
+.footer {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 8px 60px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.footer-left {
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.footer-links {
+  display: flex;
+  gap: 20px;
+}
+.footer-links a {
+  font-size: 12px;
+  color: var(--fg-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: var(--accent); }
+
+/* ── Fade-in ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+</style>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="logo">
+      <span>Vida</span><span>Plus</span>
+      <span class="logo-dot"></span>
+    </div>
+    <div class="nav-links">
+      <a href="#funcionalidades">Funcionalidades</a>
+      <a href="#como-funciona">Como Funciona</a>
+      <a href="#depoimentos">Depoimentos</a>
+      <a href="https://vida-plus-nu.vercel.app" class="nav-cta" target="_blank" rel="noopener">Acessar App</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-badge">✦ Seu companheiro de saúde digital</div>
+  <h1>Cuide da sua saúde<br>de forma <span class="accent">simples</span></h1>
+  <p class="hero-sub">Monitore hidratação, humor, medicamentos e consultas em um só lugar. Tudo organizado, bonito e feito para o seu dia a dia.</p>
+  <div class="hero-actions">
+    <a href="https://vida-plus-nu.vercel.app" class="btn btn-lg btn-primary" target="_blank" rel="noopener">
+      Começar Agora
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+    </a>
+    <a href="#funcionalidades" class="btn btn-lg btn-outline">Ver Funcionalidades</a>
+  </div>
+
+  <!-- Phone mockup -->
+  <div class="hero-mockup">
+    <div class="mockup-status">
+      <span>9:41</span>
+      <span style="display:flex;gap:4px;align-items:center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.24 4.24 0 00-6 0zm-4-4l2 2a7.07 7.07 0 0110 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="17" y="6" width="4" height="14" rx="1"/><rect x="11" y="9" width="4" height="11" rx="1"/><rect x="5" y="12" width="4" height="8" rx="1"/></svg>
+      </span>
+    </div>
+    <div class="mockup-header">
+      <div class="mockup-greeting">Bom dia,</div>
+      <div class="mockup-name">Maicon 👋</div>
+    </div>
+    <div class="mockup-rings">
+      <div class="ring-item">
+        <svg width="72" height="72" style="transform:rotate(-90deg)">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="var(--accent)" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="47.1"/>
+        </svg>
+        <div class="label">Água</div>
+        <div class="value" style="color:var(--accent)">75%</div>
+      </div>
+      <div class="ring-item">
+        <svg width="72" height="72" style="transform:rotate(-90deg)">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#2563eb" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="113.1"/>
+        </svg>
+        <div class="label">Passos</div>
+        <div class="value" style="color:#2563eb">40%</div>
+      </div>
+      <div class="ring-item">
+        <svg width="72" height="72" style="transform:rotate(-90deg)">
+          <circle cx="36" cy="36" r="30" fill="none" stroke="var(--border)" stroke-width="5"/>
+          <circle cx="36" cy="36" r="30" fill="none" stroke="#7c3aed" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="0"/>
+        </svg>
+        <div class="label">Meds</div>
+        <div class="value" style="color:#7c3aed">100%</div>
+      </div>
+    </div>
+    <div class="mockup-cards">
+      <div class="mockup-card">
+        <div class="mockup-card-icon" style="background:var(--accent-light)">😊</div>
+        <div class="mockup-card-text">
+          <div class="mc-title">Humor de Hoje</div>
+          <div class="mc-desc">Feliz — registrado às 08:30</div>
+        </div>
+      </div>
+      <div class="mockup-card">
+        <div class="mockup-card-icon" style="background:#eff6ff">📅</div>
+        <div class="mockup-card-text">
+          <div class="mc-title">Próxima Consulta</div>
+          <div class="mc-desc">Dr. Silva — 15/11 às 14:00</div>
+        </div>
+      </div>
+    </div>
+    <div class="mockup-bottom">
+      <div class="mockup-tab active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Home
+      </div>
+      <div class="mockup-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19.5 12.572l-7.5 7.428-7.5-7.428a5 5 0 117.5-6.566 5 5 0 117.5 6.566z"/></svg>
+        Saúde
+      </div>
+      <div class="mockup-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Agenda
+      </div>
+      <div class="mockup-tab">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Perfil
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="section reveal" id="funcionalidades">
+  <div class="section-label">Funcionalidades</div>
+  <h2 class="section-title">Tudo que você precisa para cuidar de si</h2>
+  <p class="section-desc">O VidaPlus reúne as ferramentas essenciais de saúde em uma interface limpa e intuitiva.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:var(--accent-light)">💧</div>
+      <h3>Controle de Hidratação</h3>
+      <p>Acompanhe quantos copos de água você bebe por dia com metas personalizadas e lembretes visuais.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#eff6ff">😊</div>
+      <h3>Registro de Humor</h3>
+      <p>Registre como você se sente ao longo do dia e identifique padrões no seu bem-estar emocional.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#f5f3ff">💊</div>
+      <h3>Medicamentos</h3>
+      <p>Controle seus medicamentos com horários, doses e acompanhamento de tomadas. Nunca mais esqueça.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#fffbeb">📅</div>
+      <h3>Agenda de Consultas</h3>
+      <p>Organize suas consultas médicas com data, horário, especialidade e status. Tudo em um calendário.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#fef2f2">🏃</div>
+      <h3>Atividade Física</h3>
+      <p>Monitore seus passos diários e estabeleça metas de movimento para manter uma vida ativa.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:var(--accent-light)">🌙</div>
+      <h3>Modo Escuro</h3>
+      <p>Interface adaptável ao seu tema preferido, com transições suaves e acessibilidade garantida.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="section reveal">
+  <div class="stats-bar">
+    <div class="stat-item">
+      <div class="stat-num">6</div>
+      <div class="stat-label">Módulos de Saúde</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Gratuito</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">2</div>
+      <div class="stat-label">Temas (Claro/Escuro)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">PWA</div>
+      <div class="stat-label">Funciona Offline</div>
+    </div>
+  </div>
+</section>
+
+<!-- How it works -->
+<section class="section reveal" id="como-funciona">
+  <div class="section-label">Como Funciona</div>
+  <h2 class="section-title">Simples de começar, fácil de manter</h2>
+  <p class="section-desc">Em 3 passos você já está cuidando melhor da sua saúde.</p>
+  <div class="steps-grid">
+    <div class="step-item">
+      <div class="step-num">1</div>
+      <h3>Crie sua Conta</h3>
+      <p>Faça seu cadastro rapidamente com nome e e-mail. Seus dados ficam seguros e privados.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">2</div>
+      <h3>Configure suas Metas</h3>
+      <p>Defina quantos copos de água quer beber, quais medicamentos toma e agende suas consultas.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">3</div>
+      <h3>Acompanhe seu Progresso</h3>
+      <p>Visualize seu progresso com gráficos circulares e cards intuitivos. O VidaPlus te motiva.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section reveal" id="depoimentos">
+  <div class="section-label">Depoimentos</div>
+  <h2 class="section-title">O que dizem sobre o VidaPlus</h2>
+  <p class="section-desc">Pessoas reais compartilhando como o VidaPlus ajudou no dia a dia.</p>
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"Finalmente consegui manter o hábito de beber água! Os anéis de progresso me motivam demais."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">AC</div>
+        <div>
+          <div class="testimonial-name">Ana Clara</div>
+          <div class="testimonial-role">Estudante de Enfermagem</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"Uso para controlar os medicamentos da minha mãe. A interface é tão simples que ela mesma consegue usar."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">RF</div>
+        <div>
+          <div class="testimonial-name">Rafael Ferreira</div>
+          <div class="testimonial-role">Desenvolvedor</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"O registro de humor me ajudou a perceber padrões que eu não notava. App lindo e funcional."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">JM</div>
+        <div>
+          <div class="testimonial-name">Julia Mendes</div>
+          <div class="testimonial-role">Psicóloga</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section reveal">
+  <div class="cta-box">
+    <h2>Comece a cuidar da sua saúde hoje</h2>
+    <p>É gratuito, não precisa instalar nada. Acesse direto pelo navegador.</p>
+    <a href="https://vida-plus-nu.vercel.app" class="btn" target="_blank" rel="noopener">
+      Acessar o VidaPlus
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-left">
+    <div class="logo" style="margin-bottom:8px;font-size:18px">
+      <span>Vida</span><span>Plus</span>
+    </div>
+    © 2026 VidaPlus · Projeto Integrado FATEC ADS
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/MaiconPereira7/VidaPlus" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://vida-plus-nu.vercel.app" target="_blank" rel="noopener">App</a>
+    <a href="https://claude.ai/artifact/KYiTmoGVtU1TekEQKHyz6t" target="_blank" rel="noopener">Design System</a>
+  </div>
+</footer>
+
+<script>
+// Intersection Observer for reveal animations
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); }});
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
