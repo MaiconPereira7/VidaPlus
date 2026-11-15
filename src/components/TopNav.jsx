@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Home, HeartPulse, Calendar, User, LogOut, Sun, Moon } from "lucide-react";
+import { Home, Droplets, HeartPulse, Calendar, User, LogOut, Sun, Moon } from "lucide-react";
 import ConfirmDialog from "./ConfirmDialog";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { isNavItemActive } from "../lib/nav";
 
 const ITEMS = [
-  { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/", label: "Home", icon: Home },
+  { to: "/#hidratacao", label: "Hidratação", icon: Droplets },
   { to: "/saude", label: "Saúde", icon: HeartPulse },
   { to: "/agenda", label: "Agenda", icon: Calendar },
   { to: "/perfil", label: "Perfil", icon: User },
@@ -17,6 +19,7 @@ export default function TopNav() {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const menuRef = useRef(null);
@@ -55,34 +58,33 @@ export default function TopNav() {
         </button>
 
         <nav className="hidden flex-1 items-center justify-center gap-1 md:flex">
-          {ITEMS.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) =>
-                `relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "font-semibold text-accent"
-                    : "text-text-secondary hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.05]"
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <Icon size={16} strokeWidth={1.5} />
-                  <span className="hidden lg:inline">{label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="nav-indicator"
-                      className="absolute inset-x-3 -bottom-[1px] h-[2px] rounded-full bg-accent"
-                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                    />
-                  )}
-                </>
-              )}
-            </NavLink>
-          ))}
+          {ITEMS.map(({ to, label, icon: Icon }) => {
+            const isActive = isNavItemActive(to, location);
+            return (
+              <Link
+                key={to}
+                to={to}
+                aria-current={isActive ? "page" : undefined}
+                className={
+                  `relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "font-semibold text-accent"
+                      : "text-text-secondary hover:bg-black/[0.04] hover:text-text-primary dark:hover:bg-white/[0.05]"
+                  }`
+                }
+              >
+                <Icon size={16} strokeWidth={1.5} />
+                <span className="hidden lg:inline">{label}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute inset-x-3 -bottom-[1px] h-[2px] rounded-full bg-accent"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex shrink-0 items-center gap-3">

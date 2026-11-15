@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus,
@@ -84,6 +84,17 @@ export default function HomePage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Link "Hidratação" da navegação: rola até o card de água da Home.
+  // location.key entra nas deps para rolar de novo a cada clique no link.
+  useEffect(() => {
+    if (location.hash !== "#hidratacao") return;
+    const timer = setTimeout(() => {
+      document.getElementById("hidratacao")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [location.hash, location.key]);
   const email = user.email;
   const today = todayISO();
   const firstName = user.name.split(" ")[0];
@@ -344,7 +355,10 @@ export default function HomePage() {
           </MotionCard>
 
           <div className="grid grid-cols-2 gap-4">
-            <MotionCard variants={fadeUp} className="flex flex-col items-center bg-linear-to-br from-info/[0.06] to-transparent dark:from-info/10">
+            <MotionCard
+              id="hidratacao"
+              variants={fadeUp}
+              className="scroll-mt-24 flex flex-col items-center bg-linear-to-br from-info/[0.06] to-transparent dark:from-info/10">
               <div className="mb-3 flex w-full items-center gap-1.5" style={{ color: BLUE }}>
                 <Droplets size={16} strokeWidth={1.5} />
                 <span className="meta-label text-current">
