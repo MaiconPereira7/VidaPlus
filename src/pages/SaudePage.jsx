@@ -565,12 +565,16 @@ export default function SaudePage() {
               onChange={(e) => setForm((f) => ({ ...f, result: e.target.value }))}
               placeholder="Observações sobre o resultado"
               rows={3}
+              aria-describedby="exam-result-help"
               className={`${inputClass} resize-none`}
             />
+            <p id="exam-result-help" className="mt-1 text-[11px] text-text-muted">
+              Dica: insira valores e observações do laudo médico
+            </p>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-text-secondary">Status</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-describedby="exam-status-help">
               {EXAM_STATUS.map((s) => (
                 <button
                   type="button"
@@ -586,6 +590,11 @@ export default function SaudePage() {
                 </button>
               ))}
             </div>
+            <p id="exam-status-help" className="mt-1.5 text-[11px] leading-relaxed text-text-muted">
+              <strong className="font-semibold">Normal</strong> = dentro da referência ·{" "}
+              <strong className="font-semibold">Atenção</strong> = fora da referência ·{" "}
+              <strong className="font-semibold">Crítico</strong> = requer ação urgente
+            </p>
           </div>
           {formError && (
             <p role="alert" className="rounded-lg bg-danger/10 px-3 py-2 text-xs font-medium text-danger">
