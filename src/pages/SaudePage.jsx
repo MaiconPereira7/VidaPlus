@@ -3,6 +3,7 @@ import {
   Plus,
   FileText,
   Trash2,
+  Pencil,
   Search,
   ChevronDown,
   TrendingUp,
@@ -29,6 +30,7 @@ import {
   isMedScheduledOn,
   getExams,
   addExam,
+  updateExam,
   deleteExam,
   EXAM_STATUS,
   EXAM_STATUS_STYLES,
@@ -63,6 +65,8 @@ export default function SaudePage() {
   // Exame separado do "aberto" para o nome não sumir durante a animação de saída.
   const [examToDelete, setExamToDelete] = useState(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  // id do exame em edição; null = modal em modo "Novo exame".
+  const [editingId, setEditingId] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -137,18 +141,37 @@ export default function SaudePage() {
     });
   }
 
-  function handleAddExam(e) {
+  function handleSubmitExam(e) {
     e.preventDefault();
     if (!form.name.trim()) return setFormError("Informe o nome do exame.");
     if (!form.date) return setFormError("Informe a data do exame.");
-    addExam(email, { ...form, name: form.name.trim(), local: form.local.trim() });
+    const data = { ...form, name: form.name.trim(), local: form.local.trim() };
+    if (editingId) {
+      updateExam(email, editingId, data);
+      showToast("Exame atualizado com sucesso!");
+    } else {
+      addExam(email, data);
+      showToast("Exame adicionado com sucesso!");
+    }
     setExams(getExams(email));
     resetExamForm();
     setModalOpen(false);
-    showToast("Exame adicionado ao prontuário!");
+  }
+
+  function openEditExam(exam) {
+    setForm({
+      name: exam.name,
+      date: exam.date,
+      result: exam.result || "",
+      status: exam.status,
+      local: exam.local || "",
+    });
+    setEditingId(exam.id);
+    setModalOpen(true);
   }
 
   function resetExamForm() {
+    setEditingId(null);
     setForm({ name: "", date: todayISO(), result: "", status: "Normal", local: "" });
     setPdfState({ status: "idle", fileName: "" });
     setFormError("");
@@ -184,7 +207,7 @@ export default function SaudePage() {
     if (!examToDelete) return;
     setExams(deleteExam(email, examToDelete.id));
     setDeleteOpen(false);
-    showToast("Exame removido.", "info");
+    showToast("Exame excluído com sucesso!");
   }
 
   return (
@@ -404,6 +427,16 @@ export default function SaudePage() {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
+                                openEditExam(exam);
+                              }}
+                              className="text-text-muted hover:text-accent"
+                              aria-label={`Alterar exame ${exam.name}`}
+                            >
+                              <Pencil size={15} />
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setExamToDelete(exam);
                                 setDeleteOpen(true);
                               }}
@@ -451,44 +484,46 @@ export default function SaudePage() {
           setModalOpen(false);
           resetExamForm();
         }}
-        title="Novo exame"
+        title={editingId ? "Alterar exame" : "Novo exame"}
       >
-        <form onSubmit={handleAddExam} className="space-y-3">
-          <div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/pdf"
-              onChange={handlePdfSelect}
-              className="hidden"
-              id="exam-pdf-input"
-            />
-            <label
-              htmlFor="exam-pdf-input"
-              className={`flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed px-3 py-2.5 text-xs font-medium transition-colors ${
-                pdfState.status === "done"
-                  ? "border-accent bg-accent/10 text-accent-hover dark:text-accent"
-                  : "border-border text-text-secondary hover:border-accent hover:text-accent"
-              }`}
-            >
-              {pdfState.status === "loading" ? (
-                <Loader2 size={16} className="shrink-0 animate-spin" />
-              ) : pdfState.status === "done" ? (
-                <CheckCircle2 size={16} className="shrink-0" />
-              ) : (
-                <Upload size={16} className="shrink-0" />
-              )}
-              <span className="truncate">
-                {pdfState.status === "loading"
-                  ? `Lendo ${pdfState.fileName}...`
-                  : pdfState.status === "done"
-                  ? `${pdfState.fileName} — dados preenchidos abaixo`
-                  : pdfState.status === "error"
-                  ? "Erro ao ler o PDF, tente outro arquivo"
-                  : "Importar exame de um PDF (opcional)"}
-              </span>
-            </label>
-          </div>
+        <form onSubmit={handleSubmitExam} className="space-y-3">
+          {!editingId && (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                onChange={handlePdfSelect}
+                className="hidden"
+                id="exam-pdf-input"
+              />
+              <label
+                htmlFor="exam-pdf-input"
+                className={`flex cursor-pointer items-center gap-2.5 rounded-lg border border-dashed px-3 py-2.5 text-xs font-medium transition-colors ${
+                  pdfState.status === "done"
+                    ? "border-accent bg-accent/10 text-accent-hover dark:text-accent"
+                    : "border-border text-text-secondary hover:border-accent hover:text-accent"
+                }`}
+              >
+                {pdfState.status === "loading" ? (
+                  <Loader2 size={16} className="shrink-0 animate-spin" />
+                ) : pdfState.status === "done" ? (
+                  <CheckCircle2 size={16} className="shrink-0" />
+                ) : (
+                  <Upload size={16} className="shrink-0" />
+                )}
+                <span className="truncate">
+                  {pdfState.status === "loading"
+                    ? `Lendo ${pdfState.fileName}...`
+                    : pdfState.status === "done"
+                    ? `${pdfState.fileName} — dados preenchidos abaixo`
+                    : pdfState.status === "error"
+                    ? "Erro ao ler o PDF, tente outro arquivo"
+                    : "Importar exame de um PDF (opcional)"}
+                </span>
+              </label>
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-xs font-medium text-text-secondary">
               Nome do exame
@@ -561,7 +596,7 @@ export default function SaudePage() {
             type="submit"
             className="btn-gradient w-full rounded-lg py-2.5 text-sm font-semibold text-white"
           >
-            Adicionar exame
+            {editingId ? "Salvar alterações" : "Adicionar exame"}
           </button>
         </form>
       </Modal>

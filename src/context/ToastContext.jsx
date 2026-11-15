@@ -24,7 +24,7 @@ export function ToastProvider({ children }) {
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 2600);
+    }, 3000);
   }, []);
 
   return (
