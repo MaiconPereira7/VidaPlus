@@ -116,6 +116,15 @@ export function isMedScheduledOn(med, iso) {
   return med.days.includes(new Date(y, m - 1, d).getDay());
 }
 
+// Primeiro dia em que o medicamento conta para a adesão. Registros antigos
+// não têm createdAt: usa a primeira dose marcada ou, sem nenhuma, hoje —
+// assim um remédio recém-cadastrado não aparece como "doses perdidas".
+export function medStartDate(med) {
+  if (med.createdAt) return med.createdAt;
+  if (med.takenDates?.length) return [...med.takenDates].sort()[0];
+  return todayISO();
+}
+
 export function addMed(email, { name, time, dosage = "", frequency = "diario", days = [] }) {
   const meds = getMeds(email);
   const med = {
@@ -126,6 +135,7 @@ export function addMed(email, { name, time, dosage = "", frequency = "diario", d
     frequency,
     days: frequency === "especifico" ? [...days].sort((a, b) => a - b) : [],
     takenDates: [],
+    createdAt: todayISO(),
   };
   writeJSON(key(email, "meds"), [...meds, med]);
   return med;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Moon,
@@ -6,12 +6,19 @@ import {
   LogOut,
   Pencil,
   Check,
+  CalendarCheck,
+  Pill,
+  FileText,
+  Droplets,
 } from "lucide-react";
 import Card from "../components/Card";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
+import { getMoodLog, getWaterMap, getMeds, getExams, WATER_GOAL } from "../lib/health";
+import { overallAdherence } from "../lib/insights";
+import { lastNDays } from "../lib/dates";
 
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
@@ -57,6 +64,20 @@ export default function PerfilPage() {
     logout();
     navigate("/login");
   }
+
+  const resumo = useMemo(() => {
+    const last30 = lastNDays(30);
+    const moodDates = new Set(getMoodLog(user.email).map((m) => m.date));
+    const water = getWaterMap(user.email);
+    const meds = getMeds(user.email);
+    return {
+      diasRegistrados: last30.filter((d) => moodDates.has(d) || water[d]).length,
+      metaAgua: last30.filter((d) => (water[d] || 0) >= WATER_GOAL).length,
+      adesao: overallAdherence(meds, lastNDays(7)),
+      meds: meds.length,
+      exames: getExams(user.email).length,
+    };
+  }, [user.email]);
 
   const initials = user.name
     .split(" ")
@@ -171,6 +192,36 @@ export default function PerfilPage() {
         </div>
       </div>
 
+      <Card className="animate-fade-in-up" style={{ animationDelay: "130ms" }}>
+        <p className="meta-label mb-4">Seu resumo</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <ResumoTile
+            icon={CalendarCheck}
+            iconClass="bg-accent/10 text-accent"
+            value={`${resumo.diasRegistrados}/30`}
+            label="Dias com registro no último mês"
+          />
+          <ResumoTile
+            icon={Droplets}
+            iconClass="bg-info/10 text-info"
+            value={`${resumo.metaAgua} dias`}
+            label="Meta de água batida no último mês"
+          />
+          <ResumoTile
+            icon={Pill}
+            iconClass="bg-purple/10 text-purple"
+            value={resumo.adesao === null ? "—" : `${resumo.adesao}%`}
+            label={`Adesão aos remédios (7 dias) · ${resumo.meds} cadastrado${resumo.meds === 1 ? "" : "s"}`}
+          />
+          <ResumoTile
+            icon={FileText}
+            iconClass="bg-amber/10 text-amber"
+            value={resumo.exames}
+            label={`Exame${resumo.exames === 1 ? "" : "s"} no prontuário`}
+          />
+        </div>
+      </Card>
+
       <ConfirmDialog
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
@@ -179,6 +230,18 @@ export default function PerfilPage() {
         description="Tem certeza que deseja sair? Você precisará entrar novamente para acessar seus dados."
         confirmLabel="Sair"
       />
+    </div>
+  );
+}
+
+function ResumoTile({ icon: Icon, iconClass, value, label }) {
+  return (
+    <div className="rounded-xl bg-bg-primary p-3 transition-transform duration-200 hover:-translate-y-0.5 dark:bg-white/[0.03]">
+      <span className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${iconClass}`}>
+        <Icon size={16} strokeWidth={1.75} />
+      </span>
+      <p className="text-xl font-bold tabular-nums tracking-tight text-text-primary">{value}</p>
+      <p className="text-xs text-text-secondary">{label}</p>
     </div>
   );
 }

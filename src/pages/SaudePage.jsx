@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Plus,
   FileText,
@@ -15,7 +16,12 @@ import {
   Upload,
   Loader2,
   CheckCircle2,
+  AlertTriangle,
+  ChevronRight,
+  ShieldCheck,
 } from "lucide-react";
+import AdesaoBar from "../components/AdesaoBar";
+import BarChart from "../components/BarChart";
 import Card from "../components/Card";
 import Modal from "../components/Modal";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -34,7 +40,9 @@ import {
   deleteExam,
   EXAM_STATUS,
   EXAM_STATUS_STYLES,
+  WATER_GOAL,
 } from "../lib/health";
+import { healthAlerts, medAdherence, overallAdherence } from "../lib/insights";
 import {
   lastNDays,
   lastNDaysOffset,
@@ -45,6 +53,15 @@ import {
 
 const inputClass =
   "w-full rounded-lg border border-border bg-bg-secondary px-3 py-2.5 text-sm text-text-primary outline-none ring-accent/40 input-field focus:border-accent focus:ring-2";
+
+const filterClass =
+  "input-field rounded-lg border border-border bg-bg-secondary px-3 py-2 text-sm text-text-primary outline-none ring-accent/40 focus:border-accent focus:ring-2";
+
+const ALERT_STYLES = {
+  alto: { dot: "bg-danger", chip: "bg-danger/10 text-danger", label: "Importante" },
+  medio: { dot: "bg-amber", chip: "bg-amber/10 text-amber", label: "Atenção" },
+  baixo: { dot: "bg-info", chip: "bg-info/10 text-info", label: "Lembrete" },
+};
 
 function average(values) {
   if (!values.length) return null;
@@ -121,6 +138,28 @@ export default function SaudePage() {
       return scheduled.length > 0 && scheduled.every((m) => m.takenDates.includes(d));
     }).length;
   }, [last7, meds]);
+
+  const waterWeek = useMemo(
+    () =>
+      last7.map((d) => ({
+        label: weekdayShort(d),
+        value: waterMap[d] || 0,
+        highlight: d === todayISO(),
+      })),
+    [last7, waterMap]
+  );
+  const waterGoalDays = waterWeek.filter((d) => d.value >= WATER_GOAL).length;
+
+  const medsAdherence = useMemo(
+    () => meds.map((m) => ({ med: m, adherence: medAdherence(m, last7) })),
+    [meds, last7]
+  );
+  const adherenceTotal = useMemo(() => overallAdherence(meds, last7), [meds, last7]);
+
+  const alerts = useMemo(
+    () => healthAlerts({ days: last7, waterMap, moodByDate, meds, exams }),
+    [last7, waterMap, moodByDate, meds, exams]
+  );
 
   const filteredExams = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -277,7 +316,112 @@ export default function SaudePage() {
         </Card>
       </div>
 
-      <Card className="animate-fade-in-up" style={{ animationDelay: "130ms" }}>
+      <Card className="animate-fade-in-up" style={{ animationDelay: "115ms" }} hoverable={false}>
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-text-secondary">
+            <AlertTriangle size={16} strokeWidth={1.5} />
+            <p className="meta-label">Pontos de atenção da semana</p>
+          </div>
+          {alerts.length > 0 && (
+            <span className="rounded-full bg-danger px-2 py-0.5 text-[11px] font-bold text-white">{alerts.length}</span>
+          )}
+        </div>
+        {alerts.length === 0 ? (
+          <div className="flex items-center gap-3 rounded-lg bg-accent/[0.06] px-3 py-3 dark:bg-accent/10">
+            <ShieldCheck size={20} strokeWidth={1.5} className="shrink-0 text-accent" />
+            <p className="text-sm text-text-secondary">
+              <span className="font-semibold text-text-primary">Tudo em dia.</span> Nenhum ponto de atenção nos
+              últimos 7 dias.
+            </p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-border">
+            {alerts.map((a) => {
+              const st = ALERT_STYLES[a.level];
+              return (
+                <li key={a.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+                  <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} aria-hidden="true" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-text-primary">{a.text}</p>
+                    {a.action && (
+                      <Link
+                        to={a.action.to}
+                        className="mt-1 inline-flex items-center gap-0.5 text-xs font-semibold text-accent transition-colors hover:text-accent-hover"
+                      >
+                        {a.action.label}
+                        <ChevronRight size={14} />
+                      </Link>
+                    )}
+                  </div>
+                  <span className={`hidden shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold sm:inline ${st.chip}`}>
+                    {st.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </Card>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card className="animate-fade-in-up" style={{ animationDelay: "125ms" }}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-text-secondary">
+              <Droplets size={16} strokeWidth={1.5} />
+              <p className="meta-label">Hidratação (últimos 7 dias)</p>
+            </div>
+            <span className="rounded-full bg-info/10 px-2 py-0.5 text-[11px] font-semibold text-info">
+              Meta batida em {waterGoalDays}/7 dias
+            </span>
+          </div>
+          <BarChart data={waterWeek} max={WATER_GOAL} goal={WATER_GOAL} color="var(--info)" height={160} />
+          <p className="mt-3 text-xs text-text-muted">
+            Meta: {WATER_GOAL} copos por dia. Barras verdes = meta atingida.
+          </p>
+        </Card>
+
+        <Card className="animate-fade-in-up" style={{ animationDelay: "135ms" }}>
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-text-secondary">
+              <Pill size={16} strokeWidth={1.5} />
+              <p className="meta-label">Adesão aos medicamentos (7 dias)</p>
+            </div>
+            {adherenceTotal !== null && (
+              <span className="text-sm font-bold tabular-nums text-text-primary">{adherenceTotal}%</span>
+            )}
+          </div>
+          {meds.length === 0 ? (
+            <EmptyState
+              icon={Pill}
+              title="Nenhum medicamento cadastrado"
+              description="Cadastre seus remédios na Home para acompanhar a adesão aqui."
+            />
+          ) : (
+            <ul className="space-y-3.5">
+              {medsAdherence.map(({ med, adherence }) => (
+                <li key={med.id}>
+                  <div className="mb-1 flex items-baseline justify-between gap-2">
+                    <p className="truncate text-sm font-medium text-text-primary">
+                      {med.name}
+                      {med.dosage && <span className="font-normal text-text-muted"> · {med.dosage}</span>}
+                    </p>
+                    <span className="shrink-0 text-xs text-text-muted">
+                      {adherence ? `${adherence.taken}/${adherence.scheduled} doses` : "Sem doses previstas ainda"}
+                    </span>
+                  </div>
+                  {adherence ? (
+                    <AdesaoBar value={adherence.pct} />
+                  ) : (
+                    <div className="h-2 w-full rounded-full bg-border" />
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </div>
+
+      <Card className="animate-fade-in-up" style={{ animationDelay: "145ms" }}>
         <div className="mb-4 flex items-center justify-between">
           <p className="meta-label">Histórico de humor (últimos 7 dias)</p>
           {moodTrend && (
@@ -339,19 +483,21 @@ export default function SaudePage() {
 
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <div className="relative min-w-[160px] flex-1">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar exame..."
-              className="w-full rounded-lg border border-border bg-bg-secondary py-1.5 pl-8 pr-2 text-xs text-text-primary outline-none ring-accent/40 focus:ring-2"
+              aria-label="Buscar exame"
+              className={`${filterClass} w-full pl-9`}
             />
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-border bg-bg-secondary px-2 py-1.5 text-xs text-text-primary outline-none"
+            aria-label="Filtrar por status"
+            className={filterClass}
           >
             <option value="Todos">Todos os status</option>
             {EXAM_STATUS.map((s) => (
@@ -364,7 +510,8 @@ export default function SaudePage() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="rounded-lg border border-border bg-bg-secondary px-2 py-1.5 text-xs text-text-primary outline-none"
+            aria-label="Filtrar por data"
+            className={filterClass}
           />
           {(statusFilter !== "Todos" || dateFilter || search) && (
             <button
@@ -373,7 +520,7 @@ export default function SaudePage() {
                 setDateFilter("");
                 setSearch("");
               }}
-              className="text-xs font-medium text-accent hover:text-accent-hover"
+              className="text-sm font-medium text-accent transition-colors hover:text-accent-hover"
             >
               Limpar
             </button>
