@@ -16,6 +16,14 @@ const SatisfacaoPage = lazy(() => import("./pages/avaliacao/SatisfacaoPage"));
 const NpsPage = lazy(() => import("./pages/avaliacao/NpsPage"));
 const SusPage = lazy(() => import("./pages/avaliacao/SusPage"));
 const ResultadosPage = lazy(() => import("./pages/avaliacao/ResultadosPage"));
+const SupervisorLogin = lazy(() => import("./pages/SupervisorLogin"));
+const SupervisorLayout = lazy(() => import("./layouts/SupervisorLayout"));
+const SupDashboard = lazy(() => import("./pages/supervisor/Dashboard"));
+const SupPacientes = lazy(() => import("./pages/supervisor/Pacientes"));
+const SupPacienteDetalhe = lazy(() => import("./pages/supervisor/PacienteDetalhe"));
+const SupRelatorios = lazy(() => import("./pages/supervisor/Relatorios"));
+const SupLembretes = lazy(() => import("./pages/supervisor/Lembretes"));
+const SupConfiguracoes = lazy(() => import("./pages/supervisor/Configuracoes"));
 
 function LoginRoute() {
   const { user } = useAuth();
@@ -39,6 +47,16 @@ export default function App() {
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/login" element={<LoginRoute />} />
+              <Route path="/supervisor" element={<SupervisorLogin />} />
+              <Route path="/supervisor" element={<SupervisorLayout />}>
+                <Route path="dashboard" element={<SupDashboard />} />
+                <Route path="pacientes" element={<SupPacientes />} />
+                <Route path="pacientes/:id" element={<SupPacienteDetalhe />} />
+                <Route path="relatorios" element={<SupRelatorios />} />
+                <Route path="lembretes" element={<SupLembretes />} />
+                <Route path="configuracoes" element={<SupConfiguracoes />} />
+                <Route path="*" element={<Navigate to="/supervisor/dashboard" replace />} />
+              </Route>
 
               <Route
                 path="/avaliacao/satisfacao"
