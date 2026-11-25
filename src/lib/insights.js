@@ -35,7 +35,7 @@ export function overallAdherence(meds, days) {
  * Pontos de atenção da semana, no tom de um lembrete gentil (não de alarme).
  * days: últimos 7 dias (ISO), do mais antigo para hoje.
  */
-export function healthAlerts({ days, waterMap, moodByDate, meds, exams }) {
+export function healthAlerts({ days, waterMap, waterGoal = WATER_GOAL, moodByDate, meds, exams }) {
   const alerts = [];
   const today = todayISO();
   const pastDays = days.filter((d) => d !== today);
@@ -43,11 +43,11 @@ export function healthAlerts({ days, waterMap, moodByDate, meds, exams }) {
   // Água: os 3 dias anteriores a hoje abaixo da meta, com algum registro na semana.
   const last3 = pastDays.slice(-3);
   const hasWaterData = days.some((d) => waterMap[d]);
-  if (hasWaterData && last3.length === 3 && last3.every((d) => (waterMap[d] || 0) < WATER_GOAL)) {
+  if (hasWaterData && last3.length === 3 && last3.every((d) => (waterMap[d] || 0) < waterGoal)) {
     alerts.push({
       id: "agua",
       level: "medio",
-      text: `Você ficou abaixo da meta de ${WATER_GOAL} copos nos últimos 3 dias.`,
+      text: `Você ficou abaixo da meta de ${waterGoal} copos nos últimos 3 dias.`,
       action: { label: "Registrar água", to: "/#hidratacao" },
     });
   }

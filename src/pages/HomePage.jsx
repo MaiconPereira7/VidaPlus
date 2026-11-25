@@ -35,7 +35,7 @@ import {
   getWaterToday,
   getWaterOnDate,
   setWaterToday,
-  WATER_GOAL,
+  getWaterGoal,
   getStepsToday,
   getStepsOnDate,
   setStepsToday,
@@ -86,7 +86,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Link "Hidratação" da navegação: rola até o card de água da Home.
+  // Links para "/#hidratacao" (ex.: alerta de água na Saúde) rolam até o card de água.
   // location.key entra nas deps para rolar de novo a cada clique no link.
   useEffect(() => {
     if (location.hash !== "#hidratacao") return;
@@ -103,6 +103,7 @@ export default function HomePage() {
   const [mood, setMood] = useState(() => getMoodToday(email));
   const yesterdayMood = useMemo(() => getMoodOnDate(email, yesterdayISO()), [email]);
   const [water, setWater] = useState(() => getWaterToday(email));
+  const waterGoal = useMemo(() => getWaterGoal(email), [email]);
   const [steps, setSteps] = useState(() => getStepsToday(email));
   const [meds, setMeds] = useState(() => getMeds(email));
   const [exams] = useState(() => getExams(email));
@@ -365,12 +366,12 @@ export default function HomePage() {
                   {isSelectedToday ? "Hidratação" : `Hidratação · ${formatShortDate(selectedDay)}`}
                 </span>
               </div>
-              <ProgressRing value={dayWater} max={WATER_GOAL} color={BLUE}>
+              <ProgressRing value={dayWater} max={waterGoal} color={BLUE}>
                 <span className="stat-number">{dayWater}</span>
-                <span className="text-[10px] text-text-muted">/ {WATER_GOAL}</span>
+                <span className="text-[10px] text-text-muted">/ {waterGoal}</span>
               </ProgressRing>
               <p className="mt-2 text-xs text-text-secondary">copos de água</p>
-              <ProgressBar value={dayWater} max={WATER_GOAL} color={BLUE} height="h-1" trackClassName="mt-3" />
+              <ProgressBar value={dayWater} max={waterGoal} color={BLUE} height="h-1" trackClassName="mt-3" />
               {isSelectedToday ? (
                 <div className="mt-4 flex items-center justify-center gap-3">
                   <button

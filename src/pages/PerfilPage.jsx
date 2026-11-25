@@ -16,7 +16,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
-import { getMoodLog, getWaterMap, getMeds, getExams, WATER_GOAL } from "../lib/health";
+import { getMoodLog, getWaterMap, getMeds, getExams, getWaterGoal } from "../lib/health";
 import { overallAdherence } from "../lib/insights";
 import { lastNDays } from "../lib/dates";
 
@@ -70,9 +70,10 @@ export default function PerfilPage() {
     const moodDates = new Set(getMoodLog(user.email).map((m) => m.date));
     const water = getWaterMap(user.email);
     const meds = getMeds(user.email);
+    const waterGoal = getWaterGoal(user.email);
     return {
       diasRegistrados: last30.filter((d) => moodDates.has(d) || water[d]).length,
-      metaAgua: last30.filter((d) => (water[d] || 0) >= WATER_GOAL).length,
+      metaAgua: last30.filter((d) => (water[d] || 0) >= waterGoal).length,
       adesao: overallAdherence(meds, lastNDays(7)),
       meds: meds.length,
       exames: getExams(user.email).length,

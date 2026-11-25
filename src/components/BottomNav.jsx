@@ -4,7 +4,7 @@ import { isNavItemActive } from "../lib/nav";
 
 const ITEMS = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/#hidratacao", label: "Hidratação", icon: Droplets },
+  { to: "/hidratacao", label: "Hidratação", icon: Droplets },
   { to: "/saude", label: "Saúde", icon: HeartPulse },
   { to: "/agenda", label: "Agenda", icon: Calendar },
   { to: "/perfil", label: "Perfil", icon: User },

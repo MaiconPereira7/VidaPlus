@@ -43,7 +43,21 @@ export function setMoodToday(email, value) {
 }
 
 // ---------- Hidratação ----------
-export const WATER_GOAL = 8;
+export const WATER_GOAL = 8; // meta padrão
+export const WATER_GOAL_MIN = 1;
+export const WATER_GOAL_MAX = 20;
+
+// Meta diária de copos escolhida pelo usuário (editável na página Hidratação).
+export function getWaterGoal(email) {
+  const n = readJSON(key(email, "waterGoal"), WATER_GOAL);
+  return Number.isFinite(n) ? n : WATER_GOAL;
+}
+
+export function setWaterGoal(email, goal) {
+  const clamped = Math.max(WATER_GOAL_MIN, Math.min(WATER_GOAL_MAX, Math.round(goal)));
+  writeJSON(key(email, "waterGoal"), clamped);
+  return clamped;
+}
 
 export function getWaterMap(email) {
   return readJSON(key(email, "water"), {});

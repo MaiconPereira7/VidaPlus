@@ -40,7 +40,7 @@ import {
   deleteExam,
   EXAM_STATUS,
   EXAM_STATUS_STYLES,
-  WATER_GOAL,
+  getWaterGoal,
 } from "../lib/health";
 import { healthAlerts, medAdherence, overallAdherence } from "../lib/insights";
 import {
@@ -72,6 +72,7 @@ export default function SaudePage() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const email = user.email;
+  const waterGoal = useMemo(() => getWaterGoal(email), [email]);
 
   const [exams, setExams] = useState(() => getExams(email));
   const [modalOpen, setModalOpen] = useState(false);
@@ -148,7 +149,7 @@ export default function SaudePage() {
       })),
     [last7, waterMap]
   );
-  const waterGoalDays = waterWeek.filter((d) => d.value >= WATER_GOAL).length;
+  const waterGoalDays = waterWeek.filter((d) => d.value >= waterGoal).length;
 
   const medsAdherence = useMemo(
     () => meds.map((m) => ({ med: m, adherence: medAdherence(m, last7) })),
@@ -157,8 +158,8 @@ export default function SaudePage() {
   const adherenceTotal = useMemo(() => overallAdherence(meds, last7), [meds, last7]);
 
   const alerts = useMemo(
-    () => healthAlerts({ days: last7, waterMap, moodByDate, meds, exams }),
-    [last7, waterMap, moodByDate, meds, exams]
+    () => healthAlerts({ days: last7, waterMap, waterGoal, moodByDate, meds, exams }),
+    [last7, waterMap, waterGoal, moodByDate, meds, exams]
   );
 
   const filteredExams = useMemo(() => {
@@ -374,9 +375,9 @@ export default function SaudePage() {
               Meta batida em {waterGoalDays}/7 dias
             </span>
           </div>
-          <BarChart data={waterWeek} max={WATER_GOAL} goal={WATER_GOAL} color="var(--info)" height={160} />
+          <BarChart data={waterWeek} max={waterGoal} goal={waterGoal} color="var(--info)" height={160} />
           <p className="mt-3 text-xs text-text-muted">
-            Meta: {WATER_GOAL} copos por dia. Barras verdes = meta atingida.
+            Meta: {waterGoal} copos por dia. Barras verdes = meta atingida.
           </p>
         </Card>
 

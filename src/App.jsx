@@ -8,6 +8,7 @@ import AppLayout from "./components/AppLayout";
 
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
+const HidratacaoPage = lazy(() => import("./pages/HidratacaoPage"));
 const SaudePage = lazy(() => import("./pages/SaudePage"));
 const AgendaPage = lazy(() => import("./pages/AgendaPage"));
 const PerfilPage = lazy(() => import("./pages/PerfilPage"));
@@ -99,6 +100,7 @@ export default function App() {
                 }
               >
                 <Route path="/" element={<HomePage />} />
+                <Route path="/hidratacao" element={<HidratacaoPage />} />
                 <Route path="/saude" element={<SaudePage />} />
                 <Route path="/agenda" element={<AgendaPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
